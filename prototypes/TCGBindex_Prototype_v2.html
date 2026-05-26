@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TCG Bindex — Protótipo v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0c0c10;--surface:#13131a;--surface2:#1a1a24;--surface3:#22222e;--border:#2e2e3e;--border2:#3a3a4e;--gold:#e8b84b;--gold-dim:rgba(232,184,75,0.15);--gold-border:rgba(232,184,75,0.3);--text:#f0f0f8;--muted:#8888a0;--muted2:#5a5a70;--green:#4ade80;--green-dim:rgba(74,222,128,0.12);--blue:#60a5fa;--blue-dim:rgba(96,165,250,0.12);--orange:#fb923c;--orange-dim:rgba(251,146,60,0.12);--red:#f87171;--red-dim:rgba(248,113,113,0.12);--r:14px;--r-sm:10px;--r-xs:7px;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{background:#07070b;font-family:'Inter',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px 16px 40px;color:var(--text);}
+.device{width:393px;background:var(--surface);border-radius:48px;border:1.5px solid var(--border);overflow:hidden;position:relative;box-shadow:0 48px 140px rgba(0,0,0,0.8),0 0 0 1px rgba(255,255,255,0.03);}
+.dynamic-island{width:120px;height:34px;background:#000;border-radius:0 0 20px 20px;margin:0 auto;position:relative;z-index:10;}
+.status-bar{display:flex;align-items:center;justify-content:space-between;padding:4px 28px 0;font-size:12px;font-weight:600;color:var(--text);}
+.status-icons{display:flex;gap:6px;align-items:center;}
+.screen{display:none;flex-direction:column;min-height:820px;padding-bottom:84px;}
+.screen.active{display:flex;}
+.scroll{overflow-y:auto;flex:1;scrollbar-width:none;}
+.scroll::-webkit-scrollbar{display:none;}
+.bottom-nav{position:absolute;bottom:0;left:0;right:0;height:80px;background:var(--surface);border-top:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-around;padding:12px 8px 0;z-index:100;}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;padding:6px 20px;border-radius:var(--r-sm);opacity:.38;transition:opacity .18s;user-select:none;}
+.nav-item.active{opacity:1;}
+.nav-item svg{width:22px;height:22px;}
+.nav-item.active svg{stroke:var(--gold);}
+.nav-label{font-size:10px;font-weight:500;}
+.nav-item.active .nav-label{color:var(--gold);}
+.fab{position:absolute;bottom:88px;right:20px;width:52px;height:52px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:101;border:none;box-shadow:0 4px 20px rgba(232,184,75,0.35);}
+.fab svg{width:22px;height:22px;stroke:#0c0c10;stroke-width:2.5;}
+.loading-overlay{display:none;position:absolute;inset:0;background:rgba(12,12,16,0.88);backdrop-filter:blur(6px);z-index:200;align-items:center;justify-content:center;flex-direction:column;gap:16px;}
+.loading-overlay.show{display:flex;}
+.spinner{width:40px;height:40px;border:2.5px solid var(--border2);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-text{font-size:13px;color:var(--muted);}
+.toast{display:none;position:absolute;bottom:92px;left:20px;right:20px;background:var(--green);color:#0c0c10;border-radius:var(--r-sm);padding:13px 16px;font-weight:600;font-size:13px;z-index:300;align-items:center;gap:8px;animation:slideUp .25s ease;}
+.toast.show{display:flex;}
+@keyframes slideUp{from{transform:translateY(8px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.proto-badge{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:rgba(232,184,75,0.12);border:1px solid var(--gold-border);color:var(--gold);font-size:11px;font-weight:500;padding:5px 14px;border-radius:20px;z-index:1000;letter-spacing:.3px;}
+#s-login{background:var(--bg);align-items:center;justify-content:center;padding:40px 32px 60px;min-height:820px;}
+.login-logo{font-size:38px;font-weight:800;letter-spacing:-1.5px;color:var(--text);margin-bottom:6px;text-align:center;}
+.login-logo span{color:var(--gold);}
+.login-tag{font-size:13px;color:var(--muted);font-weight:300;text-align:center;margin-bottom:44px;}
+.pokeball{width:140px;height:140px;border-radius:50%;border:3px solid var(--border2);margin-bottom:44px;position:relative;overflow:hidden;flex-shrink:0;}
+.pokeball-top{position:absolute;top:0;left:0;right:0;height:50%;background:var(--gold-dim);border-bottom:3px solid var(--border2);}
+.pokeball-btn{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:26px;height:26px;border-radius:50%;background:var(--bg);border:3px solid var(--border2);z-index:2;}
+.input-group{width:100%;margin-bottom:12px;}
+.input-group label{display:block;font-size:11px;font-weight:500;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:7px;}
+.input-group input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:13px 16px;color:var(--text);font-family:'Inter',sans-serif;font-size:14px;outline:none;transition:border-color .2s;}
+.input-group input:focus{border-color:var(--gold);}
+.btn-primary{width:100%;background:var(--gold);color:#0c0c10;border:none;border-radius:var(--r-sm);padding:15px;font-family:'Inter',sans-serif;font-weight:700;font-size:14px;cursor:pointer;margin-top:6px;}
+.divider{display:flex;align-items:center;gap:12px;margin:18px 0;width:100%;}
+.divider span{font-size:12px;color:var(--muted2);white-space:nowrap;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border);}
+.btn-google{width:100%;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:var(--r-sm);padding:13px;font-family:'Inter',sans-serif;font-weight:500;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;}
+.login-footer{margin-top:22px;font-size:12px;color:var(--muted);text-align:center;}
+.login-footer a{color:var(--gold);cursor:pointer;}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px 0;}
+.logo-sm{font-size:20px;font-weight:800;letter-spacing:-.5px;}
+.logo-sm span{color:var(--gold);}
+.avatar-btn{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--orange));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#0c0c10;cursor:pointer;}
+.portfolio-card{margin:16px 20px 0;background:linear-gradient(135deg,#1c1608,#221c0a);border:1px solid var(--gold-border);border-radius:var(--r);padding:20px;position:relative;overflow:hidden;}
+.portfolio-label{font-size:11px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:rgba(232,184,75,.6);margin-bottom:6px;}
+.portfolio-brl{font-size:36px;font-weight:800;letter-spacing:-1.5px;color:var(--gold);line-height:1;margin-bottom:4px;}
+.portfolio-usd{font-size:13px;color:var(--muted);margin-bottom:16px;}
+.portfolio-stats{display:flex;gap:20px;}
+.p-stat-val{font-size:16px;font-weight:700;color:var(--text);}
+.p-stat-lbl{font-size:10px;color:var(--muted);}
+.change-badge{position:absolute;top:20px;right:20px;background:var(--green-dim);color:var(--green);font-size:11px;font-weight:600;padding:4px 8px;border-radius:20px;border:1px solid rgba(74,222,128,.2);}
+.quick-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 20px 0;}
+.qs-card{background:var(--surface2);border-radius:var(--r-sm);padding:14px;border:1px solid var(--border);}
+.qs-val{font-size:20px;font-weight:700;color:var(--text);margin-bottom:2px;}
+.qs-lbl{font-size:11px;color:var(--muted);}
+.qs-icon{font-size:18px;margin-bottom:6px;}
+.section-hd{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);padding:20px 20px 12px;}
+.recent-scroll{display:flex;gap:10px;padding:0 20px 4px;overflow-x:auto;scrollbar-width:none;}
+.recent-scroll::-webkit-scrollbar{display:none;}
+.recent-card{flex-shrink:0;width:80px;cursor:pointer;}
+.recent-img{width:80px;height:110px;border-radius:var(--r-xs);display:flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:6px;border:1px solid var(--border);}
+.recent-name{font-size:10px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.recent-price{font-size:10px;color:var(--gold);font-weight:600;}
+.market-section{padding:0 20px 20px;}
+.market-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border);}
+.market-row:last-child{border-bottom:none;}
+.market-name{font-size:13px;font-weight:500;}
+.market-meta{font-size:11px;color:var(--muted);margin-top:1px;}
+.market-brl{font-size:13px;font-weight:600;color:var(--gold);}
+.market-change{font-size:11px;margin-top:1px;}
+.up{color:var(--green);}
+.down{color:var(--red);}
+.collection-top{display:flex;align-items:center;justify-content:space-between;padding:14px 20px 0;}
+.collection-title{font-size:22px;font-weight:800;letter-spacing:-.5px;}
+.icon-btn{width:34px;height:34px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.icon-btn svg{width:16px;height:16px;}
+.view-toggle{display:flex;margin:14px 20px 0;background:var(--surface2);border-radius:var(--r-sm);padding:3px;gap:3px;border:1px solid var(--border);}
+.vt-btn{flex:1;height:30px;border:none;background:transparent;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.vt-btn svg{width:15px;height:15px;stroke:var(--muted);}
+.vt-btn.active{background:var(--surface3);}
+.vt-btn.active svg{stroke:var(--text);}
+.filter-scroll{display:flex;gap:8px;padding:12px 20px;overflow-x:auto;scrollbar-width:none;}
+.filter-scroll::-webkit-scrollbar{display:none;}
+.pill{flex-shrink:0;padding:6px 14px;border-radius:20px;background:var(--surface2);border:1px solid var(--border);font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;white-space:nowrap;}
+.pill.active{background:var(--gold-dim);border-color:var(--gold-border);color:var(--gold);}
+.binders-row{display:flex;gap:10px;padding:0 20px 4px;overflow-x:auto;scrollbar-width:none;}
+.binders-row::-webkit-scrollbar{display:none;}
+.binder-chip{flex-shrink:0;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:8px 12px;display:flex;align-items:center;gap:8px;cursor:pointer;}
+.binder-chip-icon{font-size:18px;}
+.binder-chip-name{font-size:12px;font-weight:500;}
+.binder-chip-count{font-size:10px;color:var(--muted);}
+.cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 20px 8px;}
+.grid-card{aspect-ratio:.72;background:var(--surface2);border-radius:var(--r-xs);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:32px;cursor:pointer;position:relative;overflow:hidden;}
+.grid-cond{position:absolute;bottom:4px;left:4px;font-size:8px;font-weight:700;padding:2px 5px;border-radius:4px;}
+.cond-nm{background:rgba(74,222,128,.2);color:var(--green);}
+.cond-lp{background:rgba(96,165,250,.2);color:var(--blue);}
+.cond-mp{background:rgba(251,146,60,.2);color:var(--orange);}
+.cards-list-view{display:none;flex-direction:column;padding:0 20px 8px;}
+.list-card{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.list-card:last-child{border-bottom:none;}
+.list-thumb{width:40px;height:55px;border-radius:5px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.list-info{flex:1;min-width:0;}
+.list-name{font-size:13px;font-weight:600;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.list-meta{font-size:11px;color:var(--muted);margin-bottom:4px;}
+.grade-badge{display:inline-block;padding:2px 7px;border-radius:20px;font-size:9px;font-weight:700;}
+.badge-nm{background:var(--green-dim);color:var(--green);}
+.badge-lp{background:var(--blue-dim);color:var(--blue);}
+.badge-mp{background:var(--orange-dim);color:var(--orange);}
+.list-price{text-align:right;flex-shrink:0;}
+.list-brl{font-size:13px;font-weight:700;color:var(--gold);}
+.list-usd{font-size:10px;color:var(--muted);margin-top:2px;}
+.add-header{display:flex;align-items:center;gap:12px;padding:16px 20px 14px;}
+.back-btn{width:34px;height:34px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:var(--text);}
+.add-title{font-size:18px;font-weight:700;}
+.mode-toggle-add{display:flex;margin:0 20px 16px;background:var(--surface2);border-radius:var(--r-sm);padding:3px;gap:3px;}
+.mode-btn{flex:1;padding:9px;border-radius:8px;border:none;background:transparent;color:var(--muted);font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;}
+.mode-btn.active{background:var(--surface3);color:var(--text);}
+.mode-btn svg{width:14px;height:14px;}
+.search-add-row{display:flex;gap:8px;padding:0 20px 16px;}
+.search-input-add{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:11px 14px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;}
+.search-input-add::placeholder{color:var(--muted2);}
+.cam-btn{width:42px;background:var(--gold-dim);border:1px solid var(--gold-border);border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.cam-btn svg{width:18px;height:18px;stroke:var(--gold);}
+.upload-zone{margin:0 20px 16px;border:1.5px dashed var(--border2);border-radius:var(--r);height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;background:var(--surface2);position:relative;overflow:hidden;}
+.upload-zone.has-photo{border-style:solid;border-color:var(--gold);}
+.upload-zone svg{width:40px;height:40px;stroke:var(--muted2);}
+.upload-txt{font-size:13px;color:var(--muted);text-align:center;line-height:1.5;}
+.upload-hint{font-size:11px;color:var(--muted2);}
+.photo-preview-layer{display:none;position:absolute;inset:0;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a1a2e,#16213e);font-size:72px;}
+.upload-zone.has-photo .photo-preview-layer{display:flex;}
+.upload-zone.has-photo>svg,.upload-zone.has-photo .upload-txt,.upload-zone.has-photo .upload-hint{display:none;}
+.search-results{padding:0 20px;}
+.result-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.result-item:last-child{border-bottom:none;}
+.result-thumb{width:38px;height:52px;border-radius:5px;background:var(--surface2);border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.result-name{font-size:13px;font-weight:600;margin-bottom:2px;}
+.result-set{font-size:11px;color:var(--muted);}
+.result-brl{font-size:13px;font-weight:700;color:var(--gold);}
+.result-usd{font-size:10px;color:var(--muted);text-align:right;}
+.ai-result-box{margin:0 20px;background:var(--surface2);border-radius:var(--r);padding:16px;border:1px solid var(--gold-border);display:none;}
+.ai-tag{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:rgba(232,184,75,.7);margin-bottom:12px;font-weight:600;}
+.ai-card-name{font-size:18px;font-weight:800;margin-bottom:3px;}
+.ai-card-set{font-size:12px;color:var(--muted);margin-bottom:14px;}
+.cond-selector{display:flex;gap:6px;margin-bottom:14px;}
+.cond-btn{flex:1;padding:8px 4px;border-radius:8px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-family:'Inter',sans-serif;font-weight:700;font-size:12px;cursor:pointer;text-align:center;}
+.cond-btn.sel-nm{border-color:var(--green);background:var(--green-dim);color:var(--green);}
+.cond-btn.sel-lp{border-color:var(--blue);background:var(--blue-dim);color:var(--blue);}
+.cond-btn.sel-mp{border-color:var(--orange);background:var(--orange-dim);color:var(--orange);}
+.cond-btn.sel-hp{border-color:var(--red);background:var(--red-dim);color:var(--red);}
+.lang-row{display:flex;gap:6px;margin-bottom:14px;}
+.lang-btn{padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:11px;font-weight:500;cursor:pointer;}
+.lang-btn.active{border-color:var(--gold-border);background:var(--gold-dim);color:var(--gold);}
+.ai-price-row{display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid var(--border);}
+.ai-price-lbl{font-size:11px;color:var(--muted);}
+.ai-price-src{font-size:10px;color:var(--muted2);margin-top:2px;}
+.ai-price-val{font-size:24px;font-weight:800;color:var(--gold);}
+.ai-price-usd{font-size:11px;color:var(--muted);text-align:right;margin-top:2px;}
+.btn-save{display:none;margin:14px 20px 0;width:calc(100% - 40px);background:var(--gold);color:#0c0c10;border:none;border-radius:var(--r-sm);padding:14px;font-family:'Inter',sans-serif;font-weight:700;font-size:14px;cursor:pointer;}
+.card-hero-img{height:220px;background:linear-gradient(135deg,#1a1a2e,#0f1a3e,#1a0a2e);display:flex;align-items:center;justify-content:center;font-size:90px;position:relative;}
+.hero-back{position:absolute;top:16px;left:16px;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px;}
+.hero-wishlist{position:absolute;top:16px;right:16px;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px;}
+.hero-wishlist.wished{background:rgba(248,113,113,.2);border-color:rgba(248,113,113,.4);}
+.detail-body{padding:20px;}
+.detail-name{font-size:24px;font-weight:800;letter-spacing:-.5px;margin-bottom:4px;}
+.detail-set{font-size:12px;color:var(--muted);margin-bottom:18px;}
+.price-block{background:linear-gradient(135deg,#1c1608,#221c0a);border:1px solid var(--gold-border);border-radius:var(--r);padding:18px 20px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:flex-end;}
+.price-brl{font-size:30px;font-weight:800;color:var(--gold);letter-spacing:-1px;}
+.price-usd2{font-size:12px;color:rgba(232,184,75,.5);margin-top:2px;}
+.price-src{font-size:10px;color:var(--muted2);margin-top:4px;}
+.range-item{font-size:11px;color:var(--muted);margin-bottom:3px;text-align:right;}
+.range-item strong{color:var(--text);}
+.trend{font-size:10px;margin-top:5px;text-align:right;}
+.mini-chart{margin-bottom:16px;}
+.chart-label{font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:500;}
+.chart-bars{display:flex;align-items:flex-end;gap:4px;height:56px;background:var(--surface2);border-radius:var(--r-sm);padding:8px 12px;}
+.chart-bar{flex:1;border-radius:3px 3px 0 0;background:var(--gold-dim);min-width:0;}
+.chart-bar.last{background:var(--gold);opacity:.8;}
+.chart-months{display:flex;justify-content:space-between;padding:4px 12px 0;}
+.chart-months span{font-size:9px;color:var(--muted2);}
+.detail-rows{margin-bottom:16px;}
+.detail-row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--border);}
+.detail-row:last-child{border-bottom:none;}
+.dr-label{font-size:12px;color:var(--muted);}
+.dr-value{font-size:13px;font-weight:500;}
+.detail-actions{display:flex;gap:8px;}
+.btn-outline{flex:1;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 6px;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;text-align:center;display:flex;align-items:center;justify-content:center;gap:5px;}
+.btn-outline svg{width:13px;height:13px;}
+.btn-outline.danger{color:var(--red);border-color:rgba(248,113,113,.3);}
+.profile-hero{background:linear-gradient(135deg,#1a1508,#1a0a08);padding:28px 20px 24px;text-align:center;border-bottom:1px solid var(--border);}
+.profile-avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--orange));display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:#0c0c10;margin:0 auto 12px;}
+.profile-name{font-size:20px;font-weight:800;margin-bottom:4px;}
+.profile-since{font-size:12px;color:var(--muted);margin-bottom:18px;}
+.profile-stats{display:flex;justify-content:center;gap:28px;}
+.ps-val{font-size:20px;font-weight:800;color:var(--gold);}
+.ps-lbl{font-size:10px;color:var(--muted);margin-top:2px;}
+.top-cards{padding:0 20px 20px;}
+.top-card-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.top-card-row:last-child{border-bottom:none;}
+.rank{font-size:12px;font-weight:700;color:var(--muted2);width:18px;flex-shrink:0;}
+.top-thumb{width:36px;height:50px;border-radius:5px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.top-info{flex:1;min-width:0;}
+.top-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.top-meta{font-size:10px;color:var(--muted);margin-top:2px;}
+.top-brl{font-size:13px;font-weight:700;color:var(--gold);}
+.top-usd{font-size:10px;color:var(--muted);margin-top:2px;}
+.profile-menu{padding:0 20px 20px;}
+.menu-item{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.menu-item:last-child{border-bottom:none;}
+.menu-left{display:flex;align-items:center;gap:12px;}
+.menu-icon{width:32px;height:32px;border-radius:var(--r-xs);background:var(--surface2);display:flex;align-items:center;justify-content:center;}
+.menu-icon svg{width:15px;height:15px;}
+.menu-label{font-size:13px;font-weight:500;}
+.menu-sub{font-size:11px;color:var(--muted);margin-top:1px;}
+.menu-arrow{color:var(--muted2);font-size:16px;}
+</style>
+</head>
+<body>
+<div class="proto-badge">✦ TCG Bindex — Protótipo v2</div>
+<div class="device">
+  <div class="dynamic-island"></div>
+  <div class="status-bar"><span>9:41</span><div class="status-icons"><svg width="24" height="12" viewBox="0 0 24 12" fill="none"><rect x=".5" y=".5" width="21" height="11" rx="3.5" stroke="currentColor" opacity=".35"/><rect x="1.5" y="1.5" width="17" height="9" rx="2.5" fill="currentColor"/><path d="M23 4v4a2 2 0 000-4z" fill="currentColor" opacity=".4"/></svg></div></div>
+  <div class="loading-overlay" id="loading"><div class="spinner"></div><div class="loading-text" id="loading-text">IA identificando carta...</div></div>
+  <div class="toast" id="toast">✓ Carta salva na coleção!</div>
+
+  <!-- LOGIN -->
+  <div class="screen active" id="s-login">
+    <div class="pokeball"><div class="pokeball-top"></div><div class="pokeball-btn"></div></div>
+    <div class="login-logo">TCG<span>Bindex</span></div>
+    <div class="login-tag">Seu binder digital. Seu portfólio em BRL.</div>
+    <div class="input-group"><label>E-mail</label><input type="email" value="matheus@tcgbindex.app"></div>
+    <div class="input-group"><label>Senha</label><input type="password" value="••••••••"></div>
+    <button class="btn-primary" onclick="go('s-home')">Entrar</button>
+    <div class="divider"><span>ou</span></div>
+    <button class="btn-google" onclick="go('s-home')"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>Continuar com Google</button>
+    <div class="login-footer">Não tem conta? <a onclick="go('s-home')">Criar grátis</a></div>
+  </div>
+
+  <!-- HOME -->
+  <div class="screen" id="s-home">
+    <div class="scroll">
+      <div class="top-bar"><div class="logo-sm">TCG<span>Bindex</span></div><div class="avatar-btn" onclick="go('s-perfil')">M</div></div>
+      <div class="portfolio-card">
+        <div class="portfolio-label">Portfólio total</div>
+        <div class="portfolio-brl">R$ 1.847,50</div>
+        <div class="portfolio-usd">≈ US$ 336,00 · atualizado hoje</div>
+        <div class="portfolio-stats"><div><div class="p-stat-val">47</div><div class="p-stat-lbl">cartas</div></div><div><div class="p-stat-val">3</div><div class="p-stat-lbl">binders</div></div><div><div class="p-stat-val">NM 28</div><div class="p-stat-lbl">condição top</div></div></div>
+        <div class="change-badge">▲ +3,2%</div>
+      </div>
+      <div class="quick-stats">
+        <div class="qs-card"><div class="qs-icon">🔥</div><div class="qs-val">R$ 420</div><div class="qs-lbl">Carta mais valiosa</div></div>
+        <div class="qs-card"><div class="qs-icon">⭐</div><div class="qs-val">12</div><div class="qs-lbl">Na wishlist</div></div>
+      </div>
+      <div class="section-hd">Adicionadas recentemente</div>
+      <div class="recent-scroll">
+        <div class="recent-card" onclick="go('s-detalhe')"><div class="recent-img" style="background:linear-gradient(135deg,#1a1a2e,#16213e)">🔥</div><div class="recent-name">Charizard ex</div><div class="recent-price">R$ 420</div></div>
+        <div class="recent-card" onclick="go('s-detalhe')"><div class="recent-img" style="background:linear-gradient(135deg,#0f2027,#203a43)">⚡</div><div class="recent-name">Pikachu V</div><div class="recent-price">R$ 155</div></div>
+        <div class="recent-card" onclick="go('s-detalhe')"><div class="recent-img" style="background:linear-gradient(135deg,#1a0a2e,#2d1b69)">🌟</div><div class="recent-name">Mewtwo VStar</div><div class="recent-price">R$ 340</div></div>
+        <div class="recent-card" onclick="go('s-detalhe')"><div class="recent-img" style="background:linear-gradient(135deg,#0d2818,#1a5c30)">🌿</div><div class="recent-name">Venusaur ex</div><div class="recent-price">R$ 98</div></div>
+      </div>
+      <div class="section-hd">Maiores altas (7 dias)</div>
+      <div class="market-section">
+        <div class="market-row"><div><div class="market-name">Charizard ex — SV3</div><div class="market-meta">006/198 · Ultra Rare</div></div><div><div class="market-brl">R$ 420</div><div class="market-change up">▲ +12,4%</div></div></div>
+        <div class="market-row"><div><div class="market-name">Pikachu Illustrator</div><div class="market-meta">CoroCoro Promo · 1998</div></div><div><div class="market-brl">R$ 6.600</div><div class="market-change up">▲ +8,1%</div></div></div>
+        <div class="market-row"><div><div class="market-name">Blastoise — Base Set</div><div class="market-meta">002/102 · Holo Rare</div></div><div><div class="market-brl">R$ 1.017</div><div class="market-change down">▼ -2,3%</div></div></div>
+      </div>
+    </div>
+    <div class="bottom-nav">
+      <div class="nav-item active" onclick="go('s-home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span class="nav-label">Home</span></div>
+      <div class="nav-item" onclick="go('s-colecao')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg><span class="nav-label">Coleção</span></div>
+      <div class="nav-item" onclick="go('s-perfil')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="nav-label">Perfil</span></div>
+    </div>
+    <button class="fab" onclick="go('s-adicionar')"><svg viewBox="0 0 24 24" fill="none"><line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2.5"/><line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2.5"/></svg></button>
+  </div>
+
+  <!-- COLEÇÃO -->
+  <div class="screen" id="s-colecao">
+    <div class="scroll">
+      <div class="collection-top"><div class="collection-title">Minha coleção</div><div class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div></div>
+      <div class="view-toggle">
+        <button class="vt-btn active" id="vt-grid" onclick="setView('grid')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></button>
+        <button class="vt-btn" id="vt-list" onclick="setView('list')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></button>
+      </div>
+      <div class="filter-scroll"><div class="pill active">Todas (47)</div><div class="pill">Near Mint</div><div class="pill">Holofoil</div><div class="pill">Português</div><div class="pill">Japonês</div></div>
+      <div class="section-hd">Binders</div>
+      <div class="binders-row">
+        <div class="binder-chip"><div class="binder-chip-icon">🔥</div><div><div class="binder-chip-name">Charizards</div><div class="binder-chip-count">12 cartas</div></div></div>
+        <div class="binder-chip"><div class="binder-chip-icon">⚡</div><div><div class="binder-chip-name">Vintage</div><div class="binder-chip-count">8 cartas</div></div></div>
+        <div class="binder-chip"><div class="binder-chip-icon">🌟</div><div><div class="binder-chip-name">Modernas</div><div class="binder-chip-count">27 cartas</div></div></div>
+        <div class="binder-chip" style="border-style:dashed"><div class="binder-chip-icon">＋</div><div><div class="binder-chip-name" style="color:var(--muted)">Novo</div></div></div>
+      </div>
+      <div class="section-hd">Todas as cartas</div>
+      <div class="cards-grid" id="view-grid">
+        <div class="grid-card" style="background:linear-gradient(135deg,#1a1a2e,#16213e)" onclick="go('s-detalhe')">🔥<span class="grid-cond cond-nm">NM</span></div>
+        <div class="grid-card" style="background:linear-gradient(135deg,#0f2027,#203a43)" onclick="go('s-detalhe')">⚡<span class="grid-cond cond-lp">LP</span></div>
+        <div class="grid-card" style="background:linear-gradient(135deg,#1a0a2e,#2d1b69)" onclick="go('s-detalhe')">🌟<span class="grid-cond cond-nm">NM</span></div>
+        <div class="grid-card" style="background:linear-gradient(135deg,#0d2818,#1a5c30)" onclick="go('s-detalhe')">🌿<span class="grid-cond cond-mp">MP</span></div>
+        <div class="grid-card" style="background:linear-gradient(135deg,#2a1008,#4a1c0e)" onclick="go('s-detalhe')">🌊<span class="grid-cond cond-nm">NM</span></div>
+        <div class="grid-card" style="background:linear-gradient(135deg,#181808,#2e2e0e)" onclick="go('s-detalhe')">✨<span class="grid-cond cond-nm">NM</span></div>
+        <div class="grid-card" style="background:linear-gradient(135deg,#200820,#3d0f3d)" onclick="go('s-detalhe')">💜<span class="grid-cond cond-lp">LP</span></div>
+        <div class="grid-card" style="background:linear-gradient(135deg,#082020,#0f3d3d)" onclick="go('s-detalhe')">❄️<span class="grid-cond cond-nm">NM</span></div>
+        <div class="grid-card" style="background:linear-gradient(135deg,#201008,#3d2010)" onclick="go('s-detalhe')">⚔️<span class="grid-cond cond-nm">NM</span></div>
+      </div>
+      <div class="cards-list-view" id="view-list">
+        <div class="list-card" onclick="go('s-detalhe')"><div class="list-thumb" style="background:linear-gradient(135deg,#1a1a2e,#16213e)">🔥</div><div class="list-info"><div class="list-name">Charizard ex</div><div class="list-meta">SV3 · 006/198 · EN</div><span class="grade-badge badge-nm">Near Mint</span></div><div class="list-price"><div class="list-brl">R$ 420</div><div class="list-usd">$76,50</div></div></div>
+        <div class="list-card" onclick="go('s-detalhe')"><div class="list-thumb" style="background:linear-gradient(135deg,#0f2027,#203a43)">⚡</div><div class="list-info"><div class="list-name">Pikachu V</div><div class="list-meta">SWSH · 043/185 · PT</div><span class="grade-badge badge-lp">Lightly Played</span></div><div class="list-price"><div class="list-brl">R$ 155</div><div class="list-usd">$28,20</div></div></div>
+        <div class="list-card" onclick="go('s-detalhe')"><div class="list-thumb" style="background:linear-gradient(135deg,#1a0a2e,#2d1b69)">🌟</div><div class="list-info"><div class="list-name">Mewtwo VStar</div><div class="list-meta">SWSH · 030/172 · EN</div><span class="grade-badge badge-nm">Near Mint</span></div><div class="list-price"><div class="list-brl">R$ 340</div><div class="list-usd">$61,80</div></div></div>
+        <div class="list-card" onclick="go('s-detalhe')"><div class="list-thumb" style="background:linear-gradient(135deg,#0d2818,#1a5c30)">🌿</div><div class="list-info"><div class="list-name">Venusaur ex</div><div class="list-meta">SV3 · 197/198 · PT</div><span class="grade-badge badge-mp">Mod. Played</span></div><div class="list-price"><div class="list-brl">R$ 98</div><div class="list-usd">$17,80</div></div></div>
+      </div>
+      <div style="height:8px"></div>
+    </div>
+    <div class="bottom-nav">
+      <div class="nav-item" onclick="go('s-home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span class="nav-label">Home</span></div>
+      <div class="nav-item active" onclick="go('s-colecao')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg><span class="nav-label">Coleção</span></div>
+      <div class="nav-item" onclick="go('s-perfil')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="nav-label">Perfil</span></div>
+    </div>
+    <button class="fab" onclick="go('s-adicionar')"><svg viewBox="0 0 24 24" fill="none"><line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2.5"/><line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2.5"/></svg></button>
+  </div>
+
+  <!-- ADICIONAR -->
+  <div class="screen" id="s-adicionar">
+    <div class="scroll">
+      <div class="add-header"><div class="back-btn" onclick="go('s-colecao')">←</div><div class="add-title">Adicionar carta</div></div>
+      <div class="mode-toggle-add">
+        <button class="mode-btn active" id="mode-scan" onclick="setMode('scan')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="3"/></svg>Scan IA</button>
+        <button class="mode-btn" id="mode-search" onclick="setMode('search')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Buscar</button>
+      </div>
+      <div id="panel-scan">
+        <div class="upload-zone" id="upload-zone" onclick="doScan()">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor"/><circle cx="12" cy="12" r="4" stroke="currentColor"/><path d="M3 8V5a2 2 0 012-2h3M16 3h3a2 2 0 012 2v3M3 16v3a2 2 0 002 2h3M16 21h3a2 2 0 002-2v-3" stroke="currentColor"/></svg>
+          <div class="upload-txt">Toque para fotografar<br>ou importar da galeria</div>
+          <div class="upload-hint">Foto nítida = melhor precisão da IA</div>
+          <div class="photo-preview-layer">🔥</div>
+        </div>
+        <div class="ai-result-box" id="ai-result">
+          <div class="ai-tag">✦ Identificado pela IA</div>
+          <div class="ai-card-name">Charizard ex — Ultra Rare</div>
+          <div class="ai-card-set">Scarlet &amp; Violet · SV3 · 006/198 · Inglês</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Condição sugerida — confirme ou ajuste:</div>
+          <div class="cond-selector">
+            <button class="cond-btn sel-nm" onclick="selectCond(this,'sel-nm','R$ 420','$76,50')">NM</button>
+            <button class="cond-btn" onclick="selectCond(this,'sel-lp','R$ 310','$56,40')">LP</button>
+            <button class="cond-btn" onclick="selectCond(this,'sel-mp','R$ 190','$34,60')">MP</button>
+            <button class="cond-btn" onclick="selectCond(this,'sel-hp','R$ 80','$14,50')">HP</button>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:6px">Idioma:</div>
+          <div class="lang-row">
+            <button class="lang-btn active">EN</button>
+            <button class="lang-btn" onclick="toggleLang(this)">PT</button>
+            <button class="lang-btn" onclick="toggleLang(this)">JP</button>
+            <button class="lang-btn" onclick="toggleLang(this)">DE</button>
+          </div>
+          <div class="ai-price-row">
+            <div><div class="ai-price-lbl" id="ai-cond-lbl">Preço de mercado (NM)</div><div class="ai-price-src">TCGPlayer · hoje</div></div>
+            <div style="text-align:right"><div class="ai-price-val" id="ai-brl">R$ 420</div><div class="ai-price-usd" id="ai-usd">≈ $76,50</div></div>
+          </div>
+        </div>
+        <button class="btn-save" id="btn-save-scan" onclick="saveCard()">Salvar na coleção</button>
+        <div style="height:16px"></div>
+      </div>
+      <div id="panel-search" style="display:none">
+        <div class="search-add-row"><input class="search-input-add" type="text" placeholder="Nome, número, set..." value="Charizard"><div class="cam-btn" onclick="setMode('scan')"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2"/></svg></div></div>
+        <div class="search-results">
+          <div class="result-item" onclick="go('s-detalhe')"><div class="result-thumb" style="background:linear-gradient(135deg,#1a1a2e,#16213e)">🔥</div><div><div class="result-name">Charizard ex</div><div class="result-set">SV3 · 006/198</div></div><div style="text-align:right;flex-shrink:0"><div class="result-brl">R$ 420</div><div class="result-usd">$76,50</div></div></div>
+          <div class="result-item" onclick="go('s-detalhe')"><div class="result-thumb" style="background:linear-gradient(135deg,#2a1008,#4a1c0e)">🔥</div><div><div class="result-name">Charizard V</div><div class="result-set">Champions Path · 079</div></div><div style="text-align:right;flex-shrink:0"><div class="result-brl">R$ 290</div><div class="result-usd">$52,70</div></div></div>
+          <div class="result-item" onclick="go('s-detalhe')"><div class="result-thumb" style="background:linear-gradient(135deg,#0f1a2e,#1a2e1a)">🔥</div><div><div class="result-name">Dark Charizard</div><div class="result-set">Team Rocket · 004/082</div></div><div style="text-align:right;flex-shrink:0"><div class="result-brl">R$ 1.870</div><div class="result-usd">$340,00</div></div></div>
+          <div class="result-item" onclick="go('s-detalhe')"><div class="result-thumb" style="background:linear-gradient(135deg,#1a1a2e,#2e1a1a)">🔥</div><div><div class="result-name">Charizard — Base Set</div><div class="result-set">Base Set · 004/102</div></div><div style="text-align:right;flex-shrink:0"><div class="result-brl">R$ 2.310</div><div class="result-usd">$420,00</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DETALHE -->
+  <div class="screen" id="s-detalhe">
+    <div class="scroll">
+      <div class="card-hero-img">🔥<div class="hero-back" onclick="go('s-colecao')">←</div><div class="hero-wishlist" id="wishlist-btn" onclick="toggleWishlist()">♡</div></div>
+      <div class="detail-body">
+        <div class="detail-name">Charizard ex</div>
+        <div class="detail-set">Scarlet &amp; Violet · SV3 · 006/198 · Ultra Rare · 2023</div>
+        <div class="price-block">
+          <div><div class="price-brl">R$ 420,00</div><div class="price-usd2">≈ US$ 76,50</div><div class="price-src">TCGPlayer · NM · hoje</div></div>
+          <div><div class="range-item">Mín <strong>R$ 368</strong></div><div class="range-item">Máx <strong>R$ 495</strong></div><div class="trend up">▲ +12,4% (30d)</div></div>
+        </div>
+        <div class="mini-chart">
+          <div class="chart-label">Histórico — 6 meses (BRL)</div>
+          <div class="chart-bars"><div class="chart-bar" style="height:42%"></div><div class="chart-bar" style="height:55%"></div><div class="chart-bar" style="height:48%"></div><div class="chart-bar" style="height:64%"></div><div class="chart-bar" style="height:72%"></div><div class="chart-bar" style="height:68%"></div><div class="chart-bar" style="height:80%"></div><div class="chart-bar" style="height:75%"></div><div class="chart-bar" style="height:88%"></div><div class="chart-bar" style="height:82%"></div><div class="chart-bar" style="height:94%"></div><div class="chart-bar last" style="height:100%"></div></div>
+          <div class="chart-months"><span>Jun</span><span>Jul</span><span>Ago</span><span>Set</span><span>Out</span><span>Nov</span></div>
+        </div>
+        <div class="detail-rows">
+          <div class="detail-row"><span class="dr-label">Condição</span><span class="grade-badge badge-nm">Near Mint</span></div>
+          <div class="detail-row"><span class="dr-label">Idioma</span><span class="dr-value">Inglês (EN)</span></div>
+          <div class="detail-row"><span class="dr-label">Raridade</span><span class="dr-value">Ultra Rare ✦</span></div>
+          <div class="detail-row"><span class="dr-label">Binder</span><span class="dr-value">🔥 Charizards</span></div>
+          <div class="detail-row"><span class="dr-label">Adicionada em</span><span class="dr-value">15 mai 2026</span></div>
+        </div>
+        <div class="detail-actions">
+          <button class="btn-outline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4z"/></svg>Editar</button>
+          <button class="btn-outline">Trocar</button>
+          <button class="btn-outline danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PERFIL -->
+  <div class="screen" id="s-perfil">
+    <div class="scroll">
+      <div class="profile-hero">
+        <div class="profile-avatar">M</div>
+        <div class="profile-name">Matheus</div>
+        <div class="profile-since">Colecionador desde jan 2023</div>
+        <div class="profile-stats"><div><div class="ps-val">47</div><div class="ps-lbl">Cartas</div></div><div><div class="ps-val">18</div><div class="ps-lbl">Sets</div></div><div><div class="ps-val">R$ 1,8k</div><div class="ps-lbl">Portfólio</div></div></div>
+      </div>
+      <div class="section-hd" style="padding-top:16px">Top cartas por valor</div>
+      <div class="top-cards">
+        <div class="top-card-row" onclick="go('s-detalhe')"><div class="rank">#1</div><div class="top-thumb" style="background:linear-gradient(135deg,#1a1a2e,#16213e)">🔥</div><div class="top-info"><div class="top-name">Charizard ex</div><div class="top-meta">SV3 · NM · EN</div></div><div><div class="top-brl">R$ 420</div><div class="top-usd">$76,50</div></div></div>
+        <div class="top-card-row" onclick="go('s-detalhe')"><div class="rank">#2</div><div class="top-thumb" style="background:linear-gradient(135deg,#1a0a2e,#2d1b69)">🌟</div><div class="top-info"><div class="top-name">Mewtwo VStar</div><div class="top-meta">SWSH · NM · EN</div></div><div><div class="top-brl">R$ 340</div><div class="top-usd">$61,80</div></div></div>
+        <div class="top-card-row" onclick="go('s-detalhe')"><div class="rank">#3</div><div class="top-thumb" style="background:linear-gradient(135deg,#0f2027,#203a43)">⚡</div><div class="top-info"><div class="top-name">Pikachu V</div><div class="top-meta">SWSH · LP · PT</div></div><div><div class="top-brl">R$ 155</div><div class="top-usd">$28,20</div></div></div>
+      </div>
+      <div class="section-hd">Conta</div>
+      <div class="profile-menu">
+        <div class="menu-item"><div class="menu-left"><div class="menu-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></div><div><div class="menu-label">Wishlist</div><div class="menu-sub">12 cartas na lista</div></div></div><span class="menu-arrow">›</span></div>
+        <div class="menu-item"><div class="menu-left"><div class="menu-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></div><div><div class="menu-label">Alertas de preço</div><div class="menu-sub">3 alertas ativos</div></div></div><span class="menu-arrow">›</span></div>
+        <div class="menu-item"><div class="menu-left"><div class="menu-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0"/></svg></div><div><div class="menu-label">Configurações</div><div class="menu-sub">Idioma, moeda, conta</div></div></div><span class="menu-arrow">›</span></div>
+        <div class="menu-item" onclick="go('s-login')"><div class="menu-left"><div class="menu-icon"><svg viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" width="15" height="15"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg></div><div><div class="menu-label" style="color:var(--red)">Sair</div></div></div><span class="menu-arrow">›</span></div>
+      </div>
+      <div style="height:8px"></div>
+    </div>
+    <div class="bottom-nav">
+      <div class="nav-item" onclick="go('s-home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span class="nav-label">Home</span></div>
+      <div class="nav-item" onclick="go('s-colecao')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg><span class="nav-label">Coleção</span></div>
+      <div class="nav-item active" onclick="go('s-perfil')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="nav-label">Perfil</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const screens=['s-login','s-home','s-colecao','s-adicionar','s-detalhe','s-perfil'];
+function go(id){screens.forEach(s=>{const e=document.getElementById(s);if(e)e.classList.remove('active')});const t=document.getElementById(id);if(t){t.classList.add('active');const s=t.querySelector('.scroll');if(s)s.scrollTop=0;}}
+function setView(v){const g=document.getElementById('view-grid'),l=document.getElementById('view-list'),bg=document.getElementById('vt-grid'),bl=document.getElementById('vt-list');if(v==='grid'){g.style.display='grid';l.style.display='none';bg.classList.add('active');bl.classList.remove('active');}else{g.style.display='none';l.style.display='flex';bl.classList.add('active');bg.classList.remove('active');}}
+function setMode(m){const sp=document.getElementById('panel-scan'),srp=document.getElementById('panel-search'),bs=document.getElementById('mode-scan'),bsr=document.getElementById('mode-search');if(m==='scan'){sp.style.display='block';srp.style.display='none';bs.classList.add('active');bsr.classList.remove('active');}else{sp.style.display='none';srp.style.display='block';bsr.classList.add('active');bs.classList.remove('active');}}
+function doScan(){const z=document.getElementById('upload-zone');if(z.classList.contains('has-photo'))return;const l=document.getElementById('loading');document.getElementById('loading-text').textContent='IA identificando carta...';l.classList.add('show');setTimeout(()=>{l.classList.remove('show');z.classList.add('has-photo');document.getElementById('ai-result').style.display='block';document.getElementById('btn-save-scan').style.display='block';},1800);}
+const condLabels={'sel-nm':'Near Mint','sel-lp':'Lightly Played','sel-mp':'Mod. Played','sel-hp':'Heavily Played'};
+function selectCond(btn,cls,brl,usd){document.querySelectorAll('.cond-btn').forEach(b=>b.className='cond-btn');btn.classList.add(cls);document.getElementById('ai-brl').textContent=brl;document.getElementById('ai-usd').textContent='≈ '+usd;document.getElementById('ai-cond-lbl').textContent='Preço de mercado ('+condLabels[cls]+')';}
+function toggleLang(btn){document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+function saveCard(){document.getElementById('loading-text').textContent='Salvando na coleção...';document.getElementById('loading').classList.add('show');setTimeout(()=>{document.getElementById('loading').classList.remove('show');document.getElementById('upload-zone').classList.remove('has-photo');document.getElementById('ai-result').style.display='none';document.getElementById('btn-save-scan').style.display='none';go('s-colecao');const t=document.getElementById('toast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);},900);}
+function toggleWishlist(){const b=document.getElementById('wishlist-btn');b.classList.toggle('wished');b.textContent=b.classList.contains('wished')?'♥':'♡';}
+document.querySelectorAll('.pill').forEach(p=>{p.addEventListener('click',()=>{p.closest('.filter-scroll').querySelectorAll('.pill').forEach(x=>x.classList.remove('active'));p.classList.add('active');});});
+</script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 # 🃏 Projeto TCG — App para Colecionadores de Pokémon
 
-> Documento de planejamento criado com Claude · Versão 1.0 · Maio 2026
+> Documento de planejamento criado com Claude · Versão 1.1 · Maio 2026
 
 ---
 
@@ -37,11 +37,12 @@ Um app multiplataforma (web + mobile) para colecionadores de cartas físicas de 
 - [ ] Alerta de preço (notificar quando carta baixar de preço)
 - [ ] Estatísticas da coleção (cards por set, raridade, valor ao longo do tempo)
 - [ ] Compartilhar coleção / perfil público
+- [ ] **Avaliação de condição por IA** — ver seção 9
 
 ### Fase 3 — Comunidade
 - [ ] Proposta de troca entre usuários
 - [ ] Feed de colecionadores seguidos
-- [ ] Avaliações de condição de cartas
+- [ ] Avaliações manuais de condição (complementar à IA)
 
 ---
 
@@ -167,32 +168,26 @@ Antes de escrever a primeira linha de código, o time precisa alinhar:
 
 ---
 
-## 7. Riscos e Mitigações
+## 9. Feature: Avaliação de Condição por IA 📸
 
-| Risco | Probabilidade | Mitigação |
-|-------|--------------|-----------|
-| Time sem experiência em dev mobile | Alta | Usar Expo (abstrai muita complexidade) + Claude para gerar código |
-| Dados de preços imprecisos | Média | Múltiplas fontes + indicar que são estimativas |
-| API de cartas mudar ou sair do ar | Baixa | Cachear dados localmente no MongoDB |
-| App rejeitado nas lojas | Média | Ler as guidelines antes de submeter, usar checklist |
-| Perda de foco / escopo crescendo | Alta | Travar o MVP e só evoluir após publicação |
+> **Fase 2** — não é MVP, mas é um diferencial importante do produto. A arquitetura já suporta (campo `condition` em UserCollection).
 
----
+### O que é
 
-## 8. Próximos Passos Imediatos
+O usuário abre a câmera do celular (ou upload no navegador), tira uma foto da carta — frente e verso — e a IA sugere automaticamente a condição da carta (NM, LP, MP, HP ou DMG) com base na análise visual. O valor exibido da carta é atualizado de acordo com a condição sugerida.
 
-**Esta semana:**
-1. Time se reúne e alinha a visão deste documento
-2. Escolher o nome do app
-3. André cria conta no MongoDB Atlas e testa conexão
-4. Matheus explora a PokéTCG API (pokemontcg.io/docs)
-5. Tamires pesquisa os principais concorrentes e suas avaliações nas lojas
+### Escala de condições suportada
 
-**Próxima semana:**
-1. Criar o repositório GitHub
-2. Fazer o primeiro wireframe das 5 telas principais
-3. Modelar o banco de dados
+| Código | Nome | Descrição |
+|--------|------|-----------|
+| NM | Near Mint | Praticamente perfeita, sem marcas visíveis |
+| LP | Lightly Played | Desgaste mínimo nas bordas |
+| MP | Moderately Played | Marcas visíveis, ainda jogável |
+| HP | Heavily Played | Danos significativos |
+| DMG | Damaged | Muito danificada, dobrada ou rasgada |
 
----
+### Comportamento esperado
 
-*Documento vivo — atualizar conforme o projeto avança.*
+**Foto individual (1 carta):**
+- IA analisa frente e verso
+- Retorna condição sugerida + justificativa (ex

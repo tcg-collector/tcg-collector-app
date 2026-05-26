@@ -1,4 +1,4 @@
-import { Schema, model, Document } from 'mongoose';
+import { Schema, model, Document, Types } from 'mongoose';
 
 interface CardPriceVariant {
   low: number | null;
@@ -13,11 +13,11 @@ interface CardPrices {
   reverseHolofoil?: CardPriceVariant;
 }
 
-export interface ICard extends Document {
-  _id: string;                    // ex: "sv3-1"
+export interface ICard {
+  _id: string;
   name: string;
   number: string;
-  supertype: string;              // "Pokémon" | "Trainer" | "Energy"
+  supertype: string;
   subtypes: string[];
   rarity: string;
   artist: string;
@@ -33,7 +33,7 @@ export interface ICard extends Document {
     small: string;
     large: string;
   };
-  prices: CardPrices;             // preços em USD
+  prices: CardPrices;
   lastPriceSyncAt: Date;
   syncedAt: Date;
 }

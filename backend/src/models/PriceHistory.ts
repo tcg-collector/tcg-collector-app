@@ -1,39 +1,27 @@
-import { Schema, model, Document } from 'mongoose';
+import { Schema, model, Types } from 'mongoose';
 
-export type PriceVariant = 'normal' | 'holofoil' | 'reverseHolofoil';
-
-export interface IPriceHistory extends Document {
-  cardId: string;           // metaField para Time Series
-  variant: PriceVariant;
-  market: number | null;    // preço em USD
-  low: number | null;
-  high: number | null;
-  mid: number | null;
-  recordedAt: Date;         // timeField — snapshot semanal (todo domingo)
+export interface IPriceHistory {
+  _id: Types.ObjectId;
+  cardId: string;
+  timestamp: Date;
+  priceUSD: number;
+  priceBRL: number;
+  exchangeRate: number;
+  condition: 'NM' | 'LP' | 'MP' | 'HP' | 'DMG';
+  source: string;
 }
 
-const PriceHistorySchema = new Schema<IPriceHistory>({
-  cardId:  { type: String, ref: 'Card', required: true },
-  variant: { type: String, enum: ['normal', 'holofoil', 'reverseHolofoil'], required: true },
-  market:  { type: Number, default: null },
-  low:     { type: Number, default: null },
-  high:    { type: Number, default: null },
-  mid:     { type: Number, default: null },
-  recordedAt: { type: Date, default: Date.now },
-});
-
-// IMPORTANTE: criar como Time Series Collection no Atlas (rodar uma vez):
-//
-// db.createCollection("pricehistories", {
-//   timeseries: {
-//     timeField: "recordedAt",
-//     metaField: "cardId",
-//     granularity: "hours"
-//   }
-// })
-//
-// Job semanal (todo domingo 00:00) insere um snapshot por carta ativa.
-
-PriceHistorySchema.index({ cardId: 1, recordedAt: -1 });
+const PriceHistorySchema = new Schema<IPriceHistory>(
+  {
+    cardId:       { type: String, ref: 'Card', required: true, index: true },
+    timestamp:    { type: Date, default: Date.now },
+    priceUSD:     { type: Number, required: true },
+    priceBRL:     { type: Number, required: true },
+    exchangeRate: { type: Number, required: true },
+    condition:    { type: String, enum: ['NM', 'LP', 'MP', 'HP', 'DMG'], default: 'NM' },
+    source:       { type: String, default: 'pokemontcg.io' },
+  },
+  { timeseries: { timeField: 'timestamp', metaField: 'cardId', granularity: 'hours' } }
+);
 
 export const PriceHistory = model<IPriceHistory>('PriceHistory', PriceHistorySchema);

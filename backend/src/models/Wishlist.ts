@@ -1,31 +1,24 @@
-import { Schema, model, Document, Types } from 'mongoose';
+import { Schema, model, Types } from 'mongoose';
 
-export interface IWishlist extends Document {
+export interface IWishlist {
+  _id: Types.ObjectId;
   userId: Types.ObjectId;
   cardId: string;
-  priority: 1 | 2 | 3;        // 1 = Alta, 2 = Média, 3 = Baixa
-  maxBudgetUSD?: number;
-  targetCondition: string;
-  createdAt: Date;
-  updatedAt: Date;
+  targetPriceBRL?: number;
+  notifyOnDrop: boolean;
+  addedAt: Date;
 }
 
 const WishlistSchema = new Schema<IWishlist>(
   {
-    userId:  { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    cardId:  { type: String, ref: 'Card', required: true },
-    priority: { type: Number, enum: [1, 2, 3], default: 2 },
-    maxBudgetUSD: { type: Number },
-    targetCondition: {
-      type: String,
-      enum: ['NM', 'LP', 'MP', 'HP', 'DMG'],
-      default: 'LP',
-    },
-  },
-  { timestamps: true }
+    userId:         { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    cardId:         { type: String, ref: 'Card', required: true },
+    targetPriceBRL: { type: Number },
+    notifyOnDrop:   { type: Boolean, default: false },
+    addedAt:        { type: Date, default: Date.now },
+  }
 );
 
-// Uma carta aparece uma só vez na wishlist do usuário
 WishlistSchema.index({ userId: 1, cardId: 1 }, { unique: true });
 
 export const Wishlist = model<IWishlist>('Wishlist', WishlistSchema);

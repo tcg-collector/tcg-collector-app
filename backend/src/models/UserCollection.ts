@@ -1,52 +1,32 @@
-import { Schema, model, Document, Types } from 'mongoose';
+import { Schema, model, Types } from 'mongoose';
 
-// NM = Near Mint | LP = Lightly Played | MP = Moderately Played
-// HP = Heavily Played | DMG = Damaged
 export type CardCondition = 'NM' | 'LP' | 'MP' | 'HP' | 'DMG';
 
-export type CardLanguage = 'PT' | 'EN' | 'JP' | 'DE' | 'FR' | 'IT' | 'ES' | 'KO';
-
-export interface IUserCollection extends Document {
+export interface IUserCollection {
+  _id: Types.ObjectId;
   userId: Types.ObjectId;
   cardId: string;
   quantity: number;
   condition: CardCondition;
-  language: CardLanguage;
-  isFoil: boolean;
-  isFirstEdition: boolean;
-  acquiredPrice?: number;   // valor pago em USD (opcional)
+  language: 'PT' | 'EN' | 'JP';
+  binder?: string;
   notes?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  addedAt: Date;
 }
 
 const UserCollectionSchema = new Schema<IUserCollection>(
   {
-    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    cardId: { type: String, ref: 'Card', required: true },
-    quantity: { type: Number, required: true, min: 1, default: 1 },
-    condition: {
-      type: String,
-      enum: ['NM', 'LP', 'MP', 'HP', 'DMG'],
-      required: true,
-      default: 'NM',
-    },
-    language: {
-      type: String,
-      enum: ['PT', 'EN', 'JP', 'DE', 'FR', 'IT', 'ES', 'KO'],
-      default: 'EN',
-    },
-    isFoil:         { type: Boolean, default: false },
-    isFirstEdition: { type: Boolean, default: false },
-    acquiredPrice:  { type: Number },
-    notes:          { type: String, maxlength: 500 },
-  },
-  { timestamps: true }
+    userId:    { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    cardId:    { type: String, ref: 'Card', required: true },
+    quantity:  { type: Number, default: 1, min: 1 },
+    condition: { type: String, enum: ['NM', 'LP', 'MP', 'HP', 'DMG'], default: 'NM' },
+    language:  { type: String, enum: ['PT', 'EN', 'JP'], default: 'EN' },
+    binder:    { type: String },
+    notes:     { type: String },
+    addedAt:   { type: Date, default: Date.now },
+  }
 );
 
-// Sem unique — usuário pode ter múltiplos registros da mesma carta
-// (ex: duplicatas para troca, compras em momentos diferentes)
-UserCollectionSchema.index({ userId: 1, cardId: 1, condition: 1, language: 1 });
-UserCollectionSchema.index({ userId: 1 });
+UserCollectionSchema.index({ userId: 1, cardId: 1 });
 
 export const UserCollection = model<IUserCollection>('UserCollection', UserCollectionSchema);

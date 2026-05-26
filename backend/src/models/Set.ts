@@ -1,6 +1,6 @@
-import { Schema, model, Document } from 'mongoose';
+import { Schema, model } from 'mongoose';
 
-export interface ISet extends Document {
+export interface ISet {
   _id: string;
   name: string;
   series: string;
@@ -18,7 +18,7 @@ const SetSchema = new Schema<ISet>(
   {
     _id:          { type: String },
     name:         { type: String, required: true },
-    series:       { type: String, required: true },
+    series:       { type: String },
     printedTotal: { type: Number },
     total:        { type: Number },
     releaseDate:  { type: String },
