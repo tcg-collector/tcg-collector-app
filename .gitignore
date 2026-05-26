@@ -35,3 +35,8 @@ Thumbs.db
 
 # TypeScript
 *.tsbuildinfo
+
+# Obsidian — workspace state (muda a cada sessão, não commitar)
+docs/.obsidian/workspace.json
+docs/.obsidian/workspace-mobile.json
+docs/.obsidian/cache

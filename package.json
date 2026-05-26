@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "babel-preset-expo": "^56.0.13",
+    "react-dom": "^19.2.6"
+  }
+}
