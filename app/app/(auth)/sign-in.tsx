@@ -59,19 +59,26 @@ export default function SignInScreen() {
     if (loading) return;
     setLoading(true);
     try {
-      // Web usa URL HTTP; mobile usa deep link com scheme correto
-      const redirectUrl = Platform.OS === 'web'
-        ? Linking.createURL('/')
-        : Linking.createURL('/(tabs)', { scheme: 'tcgbindex' });
-
-      const { createdSessionId, setActive } = await startOAuthFlow({ redirectUrl });
-      if (createdSessionId && setActive) {
-        await setActive({ session: createdSessionId });
+      if (Platform.OS === 'web') {
+        // Web: usa redirect (não popup — popup é bloqueado em browsers mobile)
+        await signIn!.authenticateWithRedirect({
+          strategy: 'oauth_google',
+          redirectUrl: window.location.origin + '/sso-callback',
+          redirectUrlComplete: '/',
+        });
+        // Não chama setLoading(false) — a página vai redirecionar
+      } else {
+        // Mobile: usa expo-auth-session com deep link
+        const redirectUrl = Linking.createURL('/(tabs)', { scheme: 'tcgbindex' });
+        const { createdSessionId, setActive } = await startOAuthFlow({ redirectUrl });
+        if (createdSessionId && setActive) {
+          await setActive({ session: createdSessionId });
+        }
+        setLoading(false);
       }
     } catch (e: any) {
       const msg = e?.errors?.[0]?.message ?? e?.message ?? 'Erro ao entrar com Google';
       showAlert('Erro', msg);
-    } finally {
       setLoading(false);
     }
   };
