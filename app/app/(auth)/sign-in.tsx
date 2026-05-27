@@ -10,11 +10,18 @@ import { Colors } from '@/constants/colors';
 
 type Mode = 'sign-in' | 'sign-up';
 
+function showAlert(title: string, message: string) {
+  if (Platform.OS === 'web') {
+    window.alert(`${title}\n\n${message}`);
+    return;
+  }
+  Alert.alert(title, message);
+}
+
 export default function SignInScreen() {
   const { signIn, setActive: setActiveSignIn, isLoaded: signInLoaded } = useSignIn();
   const { signUp, setActive: setActiveSignUp, isLoaded: signUpLoaded } = useSignUp();
   const { startOAuthFlow } = useOAuth({ strategy: 'oauth_google' });
-
   const [mode, setMode] = useState<Mode>('sign-in');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -26,7 +33,7 @@ export default function SignInScreen() {
   const handleEmailAuth = async () => {
     if (!isLoaded || loading) return;
     if (!email.trim() || !password.trim()) {
-      Alert.alert('Atenção', 'Preencha e-mail e senha.');
+      showAlert('Atenção', 'Preencha e-mail e senha.');
       return;
     }
     setLoading(true);
@@ -37,13 +44,11 @@ export default function SignInScreen() {
       } else {
         const result = await signUp!.create({ emailAddress: email.trim(), password });
         await result.prepareEmailAddressVerification({ strategy: 'email_code' });
-        // Para MVP simplificado, redireciona direto após criar conta
-        // Em produção: pedir código de verificação por e-mail
         await setActiveSignUp!({ session: result.createdSessionId });
       }
     } catch (e: any) {
       const msg = e?.errors?.[0]?.message ?? e?.message ?? 'Erro na autenticação';
-      Alert.alert('Erro', msg);
+      showAlert('Erro', msg);
     } finally {
       setLoading(false);
     }
@@ -54,15 +59,18 @@ export default function SignInScreen() {
     if (loading) return;
     setLoading(true);
     try {
-      const { createdSessionId, setActive } = await startOAuthFlow({
-        redirectUrl: Linking.createURL('/(tabs)', { scheme: 'myapp' }),
-      });
+      // Web usa URL HTTP; mobile usa deep link com scheme correto
+      const redirectUrl = Platform.OS === 'web'
+        ? Linking.createURL('/')
+        : Linking.createURL('/(tabs)', { scheme: 'tcgbindex' });
+
+      const { createdSessionId, setActive } = await startOAuthFlow({ redirectUrl });
       if (createdSessionId && setActive) {
         await setActive({ session: createdSessionId });
       }
     } catch (e: any) {
       const msg = e?.errors?.[0]?.message ?? e?.message ?? 'Erro ao entrar com Google';
-      Alert.alert('Erro', msg);
+      showAlert('Erro', msg);
     } finally {
       setLoading(false);
     }
@@ -121,7 +129,6 @@ export default function SignInScreen() {
             onChangeText={setPassword}
             secureTextEntry
           />
-
           <TouchableOpacity
             style={styles.primaryBtn}
             onPress={handleEmailAuth}
@@ -153,24 +160,24 @@ export default function SignInScreen() {
 }
 
 const styles = StyleSheet.create({
-  container:       { flex: 1, backgroundColor: Colors.void },
-  content:         { flex: 1, justifyContent: 'center', padding: 28, gap: 20 },
-  header:          { alignItems: 'center', gap: 6, marginBottom: 8 },
-  logo:            { fontSize: 56 },
-  appName:         { fontSize: 28, fontWeight: '800', color: Colors.snow },
-  tagline:         { fontSize: 14, color: Colors.ash },
-  modeTabs:        { flexDirection: 'row', backgroundColor: Colors.surface, borderRadius: 12, padding: 4, gap: 4 },
-  modeTab:         { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 9 },
-  modeTabActive:   { backgroundColor: Colors.surface2 },
-  modeTabTxt:      { fontSize: 14, fontWeight: '600', color: Colors.ash },
-  modeTabTxtActive:{ color: Colors.gold },
-  form:            { gap: 12 },
-  input:           { backgroundColor: Colors.surface, borderRadius: 12, padding: 14, color: Colors.snow, fontSize: 15, borderWidth: 1, borderColor: Colors.border },
-  primaryBtn:      { backgroundColor: Colors.gold, borderRadius: 12, padding: 16, alignItems: 'center' },
-  primaryBtnTxt:   { fontSize: 16, fontWeight: '700', color: Colors.void },
-  divider:         { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  dividerLine:     { flex: 1, height: 1, backgroundColor: Colors.border },
-  dividerTxt:      { fontSize: 13, color: Colors.ash },
-  googleBtn:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, backgroundColor: Colors.surface, borderRadius: 12, padding: 16, borderWidth: 1, borderColor: Colors.border },
-  googleBtnTxt:    { fontSize: 15, fontWeight: '600', color: Colors.snow },
+  container:        { flex: 1, backgroundColor: Colors.void },
+  content:          { flex: 1, justifyContent: 'center', padding: 28, gap: 20 },
+  header:           { alignItems: 'center', gap: 6, marginBottom: 8 },
+  logo:             { fontSize: 56 },
+  appName:          { fontSize: 28, fontWeight: '800', color: Colors.snow },
+  tagline:          { fontSize: 14, color: Colors.ash },
+  modeTabs:         { flexDirection: 'row', backgroundColor: Colors.surface, borderRadius: 12, padding: 4, gap: 4 },
+  modeTab:          { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 9 },
+  modeTabActive:    { backgroundColor: Colors.surface2 },
+  modeTabTxt:       { fontSize: 14, fontWeight: '600', color: Colors.ash },
+  modeTabTxtActive: { color: Colors.gold },
+  form:             { gap: 12 },
+  input:            { backgroundColor: Colors.surface, borderRadius: 12, padding: 14, color: Colors.snow, fontSize: 15, borderWidth: 1, borderColor: Colors.border },
+  primaryBtn:       { backgroundColor: Colors.gold, borderRadius: 12, padding: 16, alignItems: 'center' },
+  primaryBtnTxt:    { fontSize: 16, fontWeight: '700', color: Colors.void },
+  divider:          { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  dividerLine:      { flex: 1, height: 1, backgroundColor: Colors.border },
+  dividerTxt:       { fontSize: 13, color: Colors.ash },
+  googleBtn:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, backgroundColor: Colors.surface, borderRadius: 12, padding: 16, borderWidth: 1, borderColor: Colors.border },
+  googleBtnTxt:     { fontSize: 15, fontWeight: '600', color: Colors.snow },
 });
