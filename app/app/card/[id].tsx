@@ -9,7 +9,6 @@ import { Colors } from '../../constants/colors';
 import { useCard } from '../../hooks/useCards';
 import { useExchangeRate } from '../../hooks/useExchangeRate';
 import { useCollection } from '../../hooks/useCollection';
-import type { CollectionItem } from '../../services/collection';
 
 
 function formatBRL(value: number): string {

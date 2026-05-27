@@ -22,7 +22,7 @@ export default function CollectionScreen() {
   const { items, loading: loadingLoose, totalCards, totalValueUSD } = useCollection();
   const { rate } = useExchangeRate();
 
-  const looseOnly = items.filter(i => true); // avulso = tudo sem binder por enquanto
+  const looseOnly = items.filter(_i => true); // avulso = tudo sem binder por enquanto
   const totalBRL = rate ? totalValueUSD * rate : 0;
 
   const handleDeleteBinder = (id: string, name: string) => {
