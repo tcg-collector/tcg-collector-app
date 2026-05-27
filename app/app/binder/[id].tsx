@@ -1,12 +1,11 @@
 import {
   View, Text, TouchableOpacity, StyleSheet,
   ScrollView, Image, ActivityIndicator, Alert, Modal,
-  FlatList, TextInput,
+  FlatList, TextInput, Platform,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useState, useRef } from 'react';
-import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Colors } from '../../constants/colors';
 import { useBinder } from '../../hooks/useBinders';
 import { useExchangeRate } from '../../hooks/useExchangeRate';
@@ -14,9 +13,36 @@ import { cardsService } from '../../services/cards';
 import { scanService, CardCondition, GRID_CONFIGS } from '../../services/binders';
 import type { Card } from '../../services/cards';
 
+// Camera só importa no mobile — evita crash no web
+let CameraView: any = null;
+let useCameraPermissions: any = () => [{ granted: false }, () => Promise.resolve()];
+if (Platform.OS !== 'web') {
+  const Camera = require('expo-camera');
+  CameraView = Camera.CameraView;
+  useCameraPermissions = Camera.useCameraPermissions;
+}
+
 function formatBRL(v: number) {
   const [i, d] = v.toFixed(2).split('.');
   return `R$ ${i.replace(/\B(?=(\d{3})+(?!\d))/g, '.')},${d}`;
+}
+
+// Alert web-safe
+function showAlert(
+  title: string,
+  message: string,
+  buttons?: Array<{ text: string; style?: 'cancel' | 'destructive' | 'default'; onPress?: () => void }>
+) {
+  if (Platform.OS === 'web') {
+    if (buttons?.some(b => b.style === 'destructive')) {
+      const confirmed = window.confirm(`${title}\n\n${message}`);
+      if (confirmed) buttons?.find(b => b.style === 'destructive')?.onPress?.();
+    } else {
+      window.alert(`${title}\n\n${message}`);
+    }
+    return;
+  }
+  Alert.alert(title, message, buttons);
 }
 
 // Multiplicadores de preço por condição (padrão de mercado TCG)
@@ -37,12 +63,10 @@ const CONDITION_LABELS: Record<CardCondition, string> = {
   DMG: 'Damaged',
 };
 
-// Preço base NM de uma carta (USD)
 function getBasePrice(card: Card): number | null {
   return card.prices?.holofoil?.market ?? card.prices?.normal?.market ?? null;
 }
 
-// Preço para uma condição específica em BRL
 function priceForCondition(card: Card, condition: CardCondition, rate: number | null): string | null {
   if (!rate) return null;
   const base = getBasePrice(card);
@@ -76,8 +100,9 @@ export default function BinderDetailScreen() {
   const [scanCandidates, setScanCandidates] = useState<Card[]>([]);
   const [editedCondition, setEditedCondition] = useState<CardCondition>('NM');
 
+  // Mobile camera
   const [permission, requestPermission] = useCameraPermissions();
-  const cameraRef = useRef<CameraView>(null);
+  const cameraRef = useRef<any>(null);
 
   if (loading) return <View style={styles.center}><ActivityIndicator color={Colors.gold} size="large" /></View>;
   if (!binder) return <View style={styles.center}><Text style={{ color: Colors.ash }}>Binder não encontrado</Text></View>;
@@ -131,41 +156,67 @@ export default function BinderDetailScreen() {
       await setSlot(selectedSlot, { cardId: card._id, condition });
       closeModal();
     } catch (e) {
-      Alert.alert('Erro', e instanceof Error ? e.message : 'Não foi possível adicionar a carta');
+      showAlert('Erro', e instanceof Error ? e.message : 'Não foi possível adicionar a carta');
     } finally {
       setAdding(false);
     }
   };
 
+  // Scan mobile (câmera)
   const handleScan = async () => {
     if (!cameraRef.current) return;
     setScanning(true);
     try {
       const photo = await cameraRef.current.takePictureAsync({ base64: true, quality: 0.7 });
       if (!photo?.base64) return;
-      const res = await scanService.scan(`data:image/jpeg;base64,${photo.base64}`);
-      const identified = res.data.identified as any;
-      setScanResult(identified);
-      setEditedCondition((identified.condition as CardCondition) ?? 'NM');
-      setScanCandidates(res.data.candidates as unknown as Card[]);
+      await processScanResult(`data:image/jpeg;base64,${photo.base64}`);
     } catch (e) {
-      Alert.alert('Erro no scan', e instanceof Error ? e.message : 'Falha ao identificar carta');
+      showAlert('Erro no scan', e instanceof Error ? e.message : 'Falha ao identificar carta');
     } finally {
       setScanning(false);
     }
   };
 
+  // Scan web (upload de arquivo)
+  const handleWebScan = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const base64 = e.target?.result as string;
+        if (!base64) return;
+        setScanning(true);
+        try {
+          await processScanResult(base64);
+        } catch (err) {
+          window.alert('Erro no scan: ' + (err instanceof Error ? err.message : 'Falha ao identificar carta'));
+        } finally {
+          setScanning(false);
+        }
+      };
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  };
+
+  // Processa resultado do scan (compartilhado mobile + web)
+  const processScanResult = async (imageBase64: string) => {
+    const res = await scanService.scan(imageBase64);
+    const identified = res.data.identified as any;
+    setScanResult(identified);
+    setEditedCondition((identified.condition as CardCondition) ?? 'NM');
+    setScanCandidates(res.data.candidates as unknown as Card[]);
+  };
+
   // Componente: seletor de condição com preços por grade
   const ConditionPicker = ({
-    card,
-    selected,
-    onSelect,
-    hint,
+    card, selected, onSelect, hint,
   }: {
-    card: Card;
-    selected: CardCondition;
-    onSelect: (c: CardCondition) => void;
-    hint?: string;
+    card: Card; selected: CardCondition; onSelect: (c: CardCondition) => void; hint?: string;
   }) => {
     const hasPrice = getBasePrice(card) !== null;
     return (
@@ -186,9 +237,7 @@ export default function BinderDetailScreen() {
                 <Text style={[styles.condName, isSelected && styles.condNameActive]}>{CONDITION_LABELS[c]}</Text>
               </View>
               {hasPrice ? (
-                <Text style={[styles.condPrice, isSelected && styles.condPriceActive]}>
-                  {price}
-                </Text>
+                <Text style={[styles.condPrice, isSelected && styles.condPriceActive]}>{price}</Text>
               ) : (
                 <Text style={styles.condNoPrice}>s/ preço</Text>
               )}
@@ -196,9 +245,7 @@ export default function BinderDetailScreen() {
           );
         })}
         {!hasPrice && (
-          <Text style={styles.noPriceNote}>
-            Esta carta não tem dados de preço no TCGPlayer
-          </Text>
+          <Text style={styles.noPriceNote}>Esta carta não tem dados de preço no TCGPlayer</Text>
         )}
       </View>
     );
@@ -231,7 +278,7 @@ export default function BinderDetailScreen() {
                 onPress={() => openAddModal(pos)}
                 onLongPress={() => {
                   if (slot.cardId) {
-                    Alert.alert('Remover carta', `Remover "${card?.name ?? 'carta'}" deste slot?`, [
+                    showAlert('Remover carta', `Remover "${card?.name ?? 'carta'}" deste slot?`, [
                       { text: 'Cancelar', style: 'cancel' },
                       { text: 'Remover', style: 'destructive', onPress: () => setSlot(pos, { cardId: null }) },
                     ]);
@@ -286,7 +333,6 @@ export default function BinderDetailScreen() {
             <View style={{ flex: 1 }}>
               {pendingCard ? (
                 <ScrollView contentContainerStyle={{ padding: 14, gap: 16 }}>
-                  {/* Card selecionada */}
                   <View style={styles.pendingRow}>
                     <Image source={{ uri: pendingCard.images.small }} style={styles.pendingImg} resizeMode="contain" />
                     <View style={{ flex: 1 }}>
@@ -299,7 +345,6 @@ export default function BinderDetailScreen() {
                     </TouchableOpacity>
                   </View>
 
-                  {/* Preço atual da condição selecionada */}
                   {getBasePrice(pendingCard) && rate ? (
                     <View style={styles.priceHighlight}>
                       <Text style={styles.priceHighlightLabel}>Valor estimado ({pendingCondition})</Text>
@@ -309,11 +354,7 @@ export default function BinderDetailScreen() {
                     </View>
                   ) : null}
 
-                  <ConditionPicker
-                    card={pendingCard}
-                    selected={pendingCondition}
-                    onSelect={setPendingCondition}
-                  />
+                  <ConditionPicker card={pendingCard} selected={pendingCondition} onSelect={setPendingCondition} />
 
                   <TouchableOpacity
                     style={styles.confirmBtn}
@@ -359,10 +400,7 @@ export default function BinderDetailScreen() {
                           </View>
                           <View style={{ alignItems: 'flex-end', gap: 4 }}>
                             {nmPrice
-                              ? <>
-                                  <Text style={styles.resultPrice}>{nmPrice}</Text>
-                                  <Text style={styles.resultPriceLabel}>NM</Text>
-                                </>
+                              ? <><Text style={styles.resultPrice}>{nmPrice}</Text><Text style={styles.resultPriceLabel}>NM</Text></>
                               : <Text style={styles.resultNoPrice}>s/ preço</Text>
                             }
                           </View>
@@ -376,15 +414,8 @@ export default function BinderDetailScreen() {
           ) : (
             /* ABA SCAN */
             <View style={{ flex: 1 }}>
-              {!permission?.granted ? (
-                <View style={styles.permBox}>
-                  <Ionicons name="camera-outline" size={48} color={Colors.ash} />
-                  <Text style={styles.permText}>Precisamos da câmera para identificar a carta</Text>
-                  <TouchableOpacity style={styles.permBtn} onPress={requestPermission}>
-                    <Text style={styles.permBtnTxt}>Permitir câmera</Text>
-                  </TouchableOpacity>
-                </View>
-              ) : scanResult ? (
+              {scanResult ? (
+                /* Resultado do scan — igual mobile e web */
                 <ScrollView contentContainerStyle={{ padding: 16, gap: 14 }}>
                   <View style={styles.scanResultCard}>
                     <Text style={styles.scanLabel}>Carta identificada</Text>
@@ -416,10 +447,7 @@ export default function BinderDetailScreen() {
                             </View>
                             <View style={{ alignItems: 'flex-end', gap: 4 }}>
                               {nmPrice
-                                ? <>
-                                    <Text style={styles.resultPrice}>{nmPrice}</Text>
-                                    <Text style={styles.resultPriceLabel}>NM</Text>
-                                  </>
+                                ? <><Text style={styles.resultPrice}>{nmPrice}</Text><Text style={styles.resultPriceLabel}>NM</Text></>
                                 : <Text style={styles.resultNoPrice}>s/ preço</Text>
                               }
                             </View>
@@ -427,7 +455,6 @@ export default function BinderDetailScreen() {
                         );
                       })}
 
-                      {/* Se o usuário tiver selecionado um candidato, mostra o painel de condição */}
                       {pendingCard && (
                         <View style={{ gap: 14 }}>
                           <View style={styles.pendingRow}>
@@ -481,23 +508,48 @@ export default function BinderDetailScreen() {
                   )}
 
                   <TouchableOpacity style={styles.rescanBtn} onPress={() => { setScanResult(null); setPendingCard(null); }}>
-                    <Text style={{ color: Colors.ash, fontSize: 14 }}>↩ Escanear novamente</Text>
+                    <Text style={{ color: Colors.ash, fontSize: 14 }}>↩ {Platform.OS === 'web' ? 'Enviar outra foto' : 'Escanear novamente'}</Text>
                   </TouchableOpacity>
                 </ScrollView>
-              ) : (
-                <View style={{ flex: 1 }}>
-                  <CameraView ref={cameraRef} style={styles.camera} facing="back">
-                    <View style={styles.cameraOverlay}>
-                      <View style={styles.cameraFrame} />
-                      <Text style={styles.cameraHint}>Enquadre a carta no centro</Text>
-                    </View>
-                  </CameraView>
-                  <TouchableOpacity style={styles.snapBtn} onPress={handleScan} disabled={scanning}>
+              ) : Platform.OS === 'web' ? (
+                /* SCAN WEB — upload de arquivo */
+                <View style={styles.webScanBox}>
+                  <Ionicons name="scan-outline" size={56} color={Colors.ash} />
+                  <Text style={styles.webScanTitle}>Identificar carta por foto</Text>
+                  <Text style={styles.webScanSub}>
+                    Selecione uma foto da carta para identificá-la com IA (Claude Vision)
+                  </Text>
+                  <TouchableOpacity style={styles.snapBtn} onPress={handleWebScan} disabled={scanning}>
                     {scanning
                       ? <><ActivityIndicator color={Colors.void} /><Text style={styles.snapTxt}>Identificando...</Text></>
-                      : <><Ionicons name="camera" size={26} color={Colors.void} /><Text style={styles.snapTxt}>Identificar carta</Text></>}
+                      : <><Ionicons name="images" size={22} color={Colors.void} /><Text style={styles.snapTxt}>Selecionar foto</Text></>}
                   </TouchableOpacity>
                 </View>
+              ) : (
+                /* SCAN MOBILE — câmera */
+                !permission?.granted ? (
+                  <View style={styles.permBox}>
+                    <Ionicons name="camera-outline" size={48} color={Colors.ash} />
+                    <Text style={styles.permText}>Precisamos da câmera para identificar a carta</Text>
+                    <TouchableOpacity style={styles.permBtn} onPress={requestPermission}>
+                      <Text style={styles.permBtnTxt}>Permitir câmera</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <View style={{ flex: 1 }}>
+                    <CameraView ref={cameraRef} style={styles.camera} facing="back">
+                      <View style={styles.cameraOverlay}>
+                        <View style={styles.cameraFrame} />
+                        <Text style={styles.cameraHint}>Enquadre a carta no centro</Text>
+                      </View>
+                    </CameraView>
+                    <TouchableOpacity style={styles.snapBtn} onPress={handleScan} disabled={scanning}>
+                      {scanning
+                        ? <><ActivityIndicator color={Colors.void} /><Text style={styles.snapTxt}>Identificando...</Text></>
+                        : <><Ionicons name="camera" size={26} color={Colors.void} /><Text style={styles.snapTxt}>Identificar carta</Text></>}
+                    </TouchableOpacity>
+                  </View>
+                )
               )}
             </View>
           )}
@@ -532,8 +584,6 @@ const styles = StyleSheet.create({
   tabActive:           { backgroundColor: Colors.surface2 },
   tabTxt:              { fontSize: 14, color: Colors.ash },
   tabTxtActive:        { color: Colors.gold, fontWeight: '600' },
-
-  // Busca
   searchRow:           { flexDirection: 'row', margin: 12, gap: 8 },
   searchInput:         { flex: 1, backgroundColor: Colors.surface, borderRadius: 10, padding: 12, color: Colors.snow, fontSize: 14 },
   searchBtn:           { backgroundColor: Colors.gold, borderRadius: 10, width: 46, alignItems: 'center', justifyContent: 'center' },
@@ -545,20 +595,14 @@ const styles = StyleSheet.create({
   resultPrice:         { fontSize: 13, fontWeight: '700', color: Colors.mint },
   resultPriceLabel:    { fontSize: 10, color: Colors.ash },
   resultNoPrice:       { fontSize: 11, color: Colors.border },
-
-  // Painel carta selecionada
   pendingRow:          { flexDirection: 'row', gap: 12, alignItems: 'center', backgroundColor: Colors.surface, borderRadius: 12, padding: 12 },
   pendingImg:          { width: 54, height: 75, borderRadius: 6 },
   pendingName:         { fontSize: 16, fontWeight: '700', color: Colors.snow },
   pendingSet:          { fontSize: 12, color: Colors.ash, marginTop: 2 },
   pendingRarity:       { fontSize: 11, color: Colors.gold, marginTop: 2 },
-
-  // Destaque de preço por condição
   priceHighlight:      { backgroundColor: Colors.surface2, borderRadius: 12, padding: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: Colors.gold + '44' },
   priceHighlightLabel: { fontSize: 13, color: Colors.ash },
   priceHighlightValue: { fontSize: 20, fontWeight: '700', color: Colors.gold },
-
-  // Seletor de condição com preços
   condLabel:           { fontSize: 13, fontWeight: '600', color: Colors.snow },
   condPickerHint:      { fontSize: 12, color: Colors.ash, marginBottom: 4 },
   condRow:             { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: Colors.surface, borderRadius: 10, padding: 12, borderWidth: 1.5, borderColor: Colors.border },
@@ -572,12 +616,9 @@ const styles = StyleSheet.create({
   condPriceActive:     { color: Colors.mint },
   condNoPrice:         { fontSize: 12, color: Colors.border },
   noPriceNote:         { fontSize: 11, color: Colors.ash, textAlign: 'center', fontStyle: 'italic' },
-
-  // Confirmação
   confirmBtn:          { backgroundColor: Colors.gold, borderRadius: 12, padding: 15, alignItems: 'center' },
   confirmBtnTxt:       { fontSize: 15, fontWeight: '700', color: Colors.void },
-
-  // Câmera
+  // Câmera mobile
   camera:              { flex: 1 },
   cameraOverlay:       { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 },
   cameraFrame:         { width: 220, height: 308, borderWidth: 2, borderColor: Colors.gold, borderRadius: 12 },
@@ -588,7 +629,10 @@ const styles = StyleSheet.create({
   permText:            { fontSize: 15, color: Colors.ash, textAlign: 'center' },
   permBtn:             { backgroundColor: Colors.gold, borderRadius: 12, paddingHorizontal: 24, paddingVertical: 12 },
   permBtnTxt:          { fontSize: 15, fontWeight: '700', color: Colors.void },
-
+  // Scan web
+  webScanBox:          { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 16 },
+  webScanTitle:        { fontSize: 18, fontWeight: '700', color: Colors.snow, textAlign: 'center' },
+  webScanSub:          { fontSize: 14, color: Colors.ash, textAlign: 'center', lineHeight: 20 },
   // Scan resultado
   scanResultCard:      { backgroundColor: Colors.surface, borderRadius: 14, padding: 16, gap: 6 },
   scanLabel:           { fontSize: 11, color: Colors.ash, textTransform: 'uppercase', letterSpacing: 0.5 },

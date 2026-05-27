@@ -1,29 +1,42 @@
 import { useEffect } from 'react';
+import { Platform } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
-import * as SecureStore from 'expo-secure-store';
 import { ClerkProvider, ClerkLoaded, useAuth } from '@clerk/clerk-expo';
 import { Colors } from '@/constants/colors';
 import { setAuthToken } from '@/services/api';
 
 SplashScreen.preventAutoHideAsync();
 
-// Cache seguro de tokens do Clerk
-const tokenCache = {
-  async getToken(key: string) {
-    try { return await SecureStore.getItemAsync(key); }
-    catch { return null; }
-  },
-  async saveToken(key: string, value: string) {
-    try { await SecureStore.setItemAsync(key, value); }
-    catch {}
-  },
-  async clearToken(key: string) {
-    try { await SecureStore.deleteItemAsync(key); }
-    catch {}
-  },
-};
+// Cache de tokens: localStorage no web, SecureStore no mobile
+const tokenCache = Platform.OS === 'web'
+  ? {
+      async getToken(key: string) {
+        try { return localStorage.getItem(key); } catch { return null; }
+      },
+      async saveToken(key: string, value: string) {
+        try { localStorage.setItem(key, value); } catch {}
+      },
+      async clearToken(key: string) {
+        try { localStorage.removeItem(key); } catch {}
+      },
+    }
+  : (() => {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const SecureStore = require('expo-secure-store');
+      return {
+        async getToken(key: string) {
+          try { return await SecureStore.getItemAsync(key); } catch { return null; }
+        },
+        async saveToken(key: string, value: string) {
+          try { await SecureStore.setItemAsync(key, value); } catch {}
+        },
+        async clearToken(key: string) {
+          try { await SecureStore.deleteItemAsync(key); } catch {}
+        },
+      };
+    })();
 
 // Guard de autenticação — redireciona para login se não autenticado
 function AuthGuard() {

@@ -1,6 +1,6 @@
 import {
   View, Text, TextInput, TouchableOpacity,
-  StyleSheet, Alert, ScrollView, Image,
+  StyleSheet, Alert, ScrollView, Image, Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,6 +9,15 @@ import * as ImagePicker from 'expo-image-picker';
 import { Colors } from '../../constants/colors';
 import { useBinders } from '../../hooks/useBinders';
 import { GRID_CONFIGS, GridConfig } from '../../services/binders';
+
+// Alert web-safe
+function showAlert(title: string, message: string) {
+  if (Platform.OS === 'web') {
+    window.alert(`${title}\n\n${message}`);
+    return;
+  }
+  Alert.alert(title, message);
+}
 
 export default function CreateBinderScreen() {
   const router = useRouter();
@@ -19,9 +28,27 @@ export default function CreateBinderScreen() {
   const [saving, setSaving] = useState(false);
 
   const pickCover = async () => {
+    if (Platform.OS === 'web') {
+      // No web: usa input file nativo
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = () => {
+        const file = input.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const uri = e.target?.result as string;
+          if (uri) setCover(uri);
+        };
+        reader.readAsDataURL(file);
+      };
+      input.click();
+      return;
+    }
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permissão necessária', 'Precisamos de acesso à galeria para a foto de capa.');
+      showAlert('Permissão necessária', 'Precisamos de acesso à galeria para a foto de capa.');
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -37,7 +64,7 @@ export default function CreateBinderScreen() {
   const takeCover = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permissão necessária', 'Precisamos da câmera para tirar a foto.');
+      showAlert('Permissão necessária', 'Precisamos da câmera para tirar a foto.');
       return;
     }
     const result = await ImagePicker.launchCameraAsync({
@@ -49,13 +76,13 @@ export default function CreateBinderScreen() {
   };
 
   const handleCreate = async () => {
-    if (!name.trim()) { Alert.alert('Nome obrigatório', 'Dê um nome ao seu binder.'); return; }
+    if (!name.trim()) { showAlert('Nome obrigatório', 'Dê um nome ao seu binder.'); return; }
     setSaving(true);
     try {
       const binder = await createBinder(name.trim(), grid, cover ?? undefined);
       router.replace(`/binder/${binder._id}`);
     } catch {
-      Alert.alert('Erro', 'Não foi possível criar o binder.');
+      showAlert('Erro', 'Não foi possível criar o binder.');
     } finally {
       setSaving(false);
     }
@@ -79,10 +106,13 @@ export default function CreateBinderScreen() {
             <Ionicons name="images-outline" size={18} color={Colors.snow} />
             <Text style={styles.coverBtnTxt}>Galeria</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.coverBtn} onPress={takeCover}>
-            <Ionicons name="camera-outline" size={18} color={Colors.snow} />
-            <Text style={styles.coverBtnTxt}>Câmera</Text>
-          </TouchableOpacity>
+          {/* Câmera só no mobile */}
+          {Platform.OS !== 'web' && (
+            <TouchableOpacity style={styles.coverBtn} onPress={takeCover}>
+              <Ionicons name="camera-outline" size={18} color={Colors.snow} />
+              <Text style={styles.coverBtnTxt}>Câmera</Text>
+            </TouchableOpacity>
+          )}
           {cover && (
             <TouchableOpacity style={[styles.coverBtn, styles.coverBtnRemove]} onPress={() => setCover(null)}>
               <Ionicons name="trash-outline" size={18} color={Colors.crimson} />
