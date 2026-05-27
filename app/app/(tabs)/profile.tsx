@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   View, Text, ScrollView, StyleSheet,
   TouchableOpacity, Switch, Image, ActivityIndicator,
