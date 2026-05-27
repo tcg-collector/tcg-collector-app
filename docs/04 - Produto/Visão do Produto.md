@@ -13,7 +13,7 @@ Colecionadores brasileiros de Pokémon TCG físico não têm uma ferramenta em p
 - Funcione offline para consultas rápidas
 
 ## Solução
-App mobile que funciona como um **binder digital inteligente**, com preços em tempo real convertidos para BRL, scan com IA e autenticação segura por conta.
+App mobile que funciona como um **binder digital inteligente**, com preços em tempo real convertidos para BRL, scan com IA e autenticação segura por conta. Disponível também como **web app** (Vercel).
 
 ## Público-alvo
 Colecionadores brasileiros de Pokémon TCG físico, especialmente:
@@ -28,7 +28,8 @@ Colecionadores brasileiros de Pokémon TCG físico, especialmente:
 | Preço em BRL | Sync diário USD→BRL via ExchangeRate API |
 | Condição real | Seletor NM/LP/MP/HP/DMG com preço estimado por grade |
 | Conta segura | Auth via Clerk (e-mail + Google OAuth) |
-| Histórico | Gráfico de evolução de preço por carta (Fase 2) |
+| Web + Mobile | Expo Web no Vercel + React Native no mobile |
+| Histórico | Gráfico de evolução de preço por carta (Fase 3) |
 | Completude | Wishlist + % de completude de expansões (Fase 3) |
 
 ## Fases do produto
@@ -44,16 +45,23 @@ Produto, design, dados, backend, ambiente de desenvolvimento
 - Autenticação Clerk (e-mail + Google OAuth)
 - Perfil com estatísticas reais da coleção
 
-### Fase 2 — Publicação
-- App Store + Play Store (build de produção)
-- Alertas de preço (wishlist)
-- Histórico de preços com gráfico
-- Busca avançada (filtro por set, raridade, condição)
+### Fase 2 — Produção & Web 🔄
+- **Backend no Railway** ✅ — `tcg-collector-app-production.up.railway.app`
+- **Versão Web no Vercel** ✅ — `tcg-collector-app.vercel.app`
+  - tokenCache via `localStorage` (web) / `expo-secure-store` (mobile)
+  - Câmera adaptada para file input no web
+  - Alerts adaptados para `window.alert/confirm`
+  - SPA routing via `vercel.json`
+- **Google OAuth no web** ⚠️ — pendente fix no Clerk
+- **Domínio personalizado** ⏳ — necessário para Clerk Production
+- **Publicação nas lojas** ⏳ — App Store + Play Store via EAS Build
 
 ### Fase 3 — Crescimento
 - Planos pagos (Bindex Pro)
 - Comunidade (troca/venda entre usuários)
 - Integração com marketplaces brasileiros
+- Wishlist com alertas de preço
+- Histórico de preços com gráficos
 
 ---
 

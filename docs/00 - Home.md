@@ -28,18 +28,31 @@ App para colecionadores brasileiros de cartas físicas Pokémon TCG.
 |------|--------|-----------|
 | Fase 0 — Fundação | ✅ Concluída | Produto, dados, design, backend base |
 | Fase 1 — MVP Core | ✅ Concluída | Binders, scan IA, preços BRL, auth, perfil |
-| Fase 2 — Publicação | ⏳ Planejada | App Store + Play Store |
+| Fase 2 — Produção & Web | 🔄 Em andamento | Backend Railway ✅ · Vercel Web ✅ · Lojas ⏳ |
 | Fase 3 — Crescimento | ⏳ Planejada | Alertas, histórico, comunidade |
 
 ---
 
-## ✅ O que está funcionando (MVP — Fase 1 completa)
+## ✅ O que está funcionando (Fase 2 — parcialmente concluída)
+
+### 🌐 Deploy Web (Vercel)
+- URL de produção: **https://tcg-collector-app.vercel.app**
+- Expo Web com Metro bundler, output estático
+- Adaptações web: `localStorage` (tokenCache), file input (câmera), `window.alert` (alerts)
+- SPA routing via `vercel.json` rewrites
+- **Pendente:** Google OAuth web (requer fix no Clerk) · Domínio personalizado
+
+### 🚂 Backend (Railway)
+- URL: **https://tcg-collector-app-production.up.railway.app**
+- Node.js + Express + TypeScript em produção
+- MongoDB Atlas conectado
+- Health check: `/health`
 
 ### 🔐 Autenticação (Clerk)
-- Login com **e-mail/senha** ou **Google OAuth**
+- Login com **e-mail/senha** ou **Google OAuth** (mobile ✅ / web ⚠️)
 - JWT Bearer token enviado automaticamente em todas as requisições
 - Token renovado a cada 50 min (duração: 60 min)
-- Cache seguro com `expo-secure-store`
+- Cache: `expo-secure-store` (mobile) / `localStorage` (web)
 - Guard de rota: não autenticado → tela de login; autenticado → tabs
 
 ### 📦 Sistema de Binders
@@ -75,11 +88,23 @@ App para colecionadores brasileiros de cartas físicas Pokémon TCG.
 
 ---
 
+## 🐛 Problemas conhecidos / Pendências
+
+| Item | Status | Notas |
+|------|--------|-------|
+| Google OAuth no web | ⚠️ Pendente | Clerk Development mode — verificar redirect URI |
+| Domínio personalizado | ⏳ Futuro | Necessário para Clerk Production |
+| App Store / Play Store | ⏳ Fase 2b | EAS Build ainda não configurado |
+| Scan via câmera no web | ✅ Adaptado | Usa file input (`<input type="file">`) |
+
+---
+
 ## 🔧 Stack técnica (resumo)
 
 | Camada | Tecnologia |
 |--------|-----------|
 | Mobile | React Native 0.81 + Expo SDK 54 + expo-router v6 |
+| Web | Expo Web + Vercel (static output) |
 | Linguagem | TypeScript strict |
 | Backend | Node.js + Express + ts-node + nodemon |
 | Banco | MongoDB Atlas M0 + Mongoose |
@@ -93,6 +118,8 @@ App para colecionadores brasileiros de cartas físicas Pokémon TCG.
 
 ## 🔗 Links externos
 
+- **App Web (Vercel)**: [tcg-collector-app.vercel.app](https://tcg-collector-app.vercel.app)
+- **Backend (Railway)**: [tcg-collector-app-production.up.railway.app](https://tcg-collector-app-production.up.railway.app)
 - **MongoDB Atlas**: [cloud.mongodb.com](https://cloud.mongodb.com)
 - **Clerk Dashboard**: [dashboard.clerk.com](https://dashboard.clerk.com)
 - **Pokémon TCG API**: [pokemontcg.io](https://pokemontcg.io)
@@ -107,7 +134,7 @@ App para colecionadores brasileiros de cartas físicas Pokémon TCG.
 
 ---
 
-*Última atualização: maio 2026 · Fase 1 concluída · Responsável: Matheus*
+*Última atualização: maio 2026 · Fase 2 em andamento · Responsável: Matheus*
 
 ---
 
