@@ -33,8 +33,16 @@ jobs:
       - name: ESLint
         run: npm run lint
 
-      - name: Tests
-        run: npm test -- --ci --forceExit
+      - name: Tests + Coverage
+        run: npm run test:coverage -- --ci --forceExit
+
+      - name: Upload backend coverage
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-coverage
+          path: backend/coverage/
+          retention-days: 14
 
   # ─── Frontend ───────────────────────────────────────────────
   frontend:
@@ -62,5 +70,13 @@ jobs:
       - name: ESLint
         run: npm run lint
 
-      - name: Tests
-        run: npm test -- --passWithNoTests --ci
+      - name: Tests + Coverage
+        run: npm run test:coverage -- --passWithNoTests --ci
+
+      - name: Upload frontend coverage
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-coverage
+          path: app/coverage/
+          retention-days: 14

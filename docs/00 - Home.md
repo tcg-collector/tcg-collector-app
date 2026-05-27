@@ -146,3 +146,29 @@ App para colecionadores brasileiros de cartas físicas Pokémon TCG.
 - [[GUIA_USAR_CLAUDE_NO_PROJETO]] — Como usar Claude no projeto
 - [[SETUP_DEV]] — Guia de setup do ambiente Windows
 - [[brand/BRAND_GUIDE]] — Guia de identidade visual
+
+---
+
+## 🔬 Pipeline de Qualidade (Fase 2 — adicionado maio/2026)
+
+### CI/CD — GitHub Actions
+
+| Workflow | Gatilho | O que faz |
+|----------|---------|-----------|
+| `CI` | push/PR → main | typecheck + lint + testes + cobertura (backend e frontend) |
+| `Claude Code Review` | Pull Request | Review automático do diff por Claude Haiku |
+| `Health Check` | Diário 08h BRT | Pinga `/health` Railway + Vercel, notifica por e-mail se cair |
+
+### Cobertura de testes
+- Relatórios gerados em cada CI run como **artefatos** no GitHub Actions (retidos 14 dias)
+- Backend: `backend/coverage/` · Frontend: `app/coverage/`
+- Acesse: Actions → run específico → seção Artifacts
+
+### Notificações
+- GitHub envia **e-mail automático** quando qualquer workflow falha
+- Configure em: GitHub → Settings → Notifications → Actions
+
+### Próximo passo — Monitoramento em runtime
+- **Sentry** (Fase 3): captura exceções em produção que usuários reais encontram
+- **E2E com Playwright** (Fase 3): testa fluxos completos (login → criar binder → scan)
+

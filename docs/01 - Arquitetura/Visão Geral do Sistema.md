@@ -89,3 +89,19 @@ EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
 ---
 
 *Veja também: [[../02 - Backend/API Reference]] · [[../04 - Produto/Visão do Produto]]*
+
+---
+
+## 🔬 Pipeline de Qualidade
+
+| Camada | Ferramenta | Cobertura |
+|--------|-----------|-----------|
+| Typecheck | `tsc --noEmit` | 100% do código TypeScript |
+| Lint | ESLint + @typescript-eslint | Backend e Frontend |
+| Testes unitários | Jest + ts-jest (backend) / jest-expo (frontend) | Endpoints e funções críticas |
+| Cobertura | jest --coverage → artefato GitHub Actions | Por run, 14 dias retidos |
+| Health check | GitHub Actions cron 08h BRT | Backend Railway + Frontend Vercel |
+| Code review IA | Claude Haiku via Anthropic API | Diff de cada PR |
+| Monitoramento runtime | ⏳ Sentry (Fase 3) | Exceções em produção |
+| Testes E2E | ⏳ Playwright (Fase 3) | Fluxos completos de usuário |
+
