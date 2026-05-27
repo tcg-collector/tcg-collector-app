@@ -27,6 +27,7 @@ export interface Card {
     holofoil?: CardPrice;
     reverseHolofoil?: CardPrice;
   };
+  artist?: string;
   lastPriceSyncAt?: string;
 }
 

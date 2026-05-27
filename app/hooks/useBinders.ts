@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { binderService, Binder, GridConfig } from '../services/binders';
+import { binderService, Binder, GridConfig, CardCondition } from '../services/binders';
 
 export function useBinders() {
   const [binders, setBinders] = useState<Binder[]>([]);
@@ -52,7 +52,7 @@ export function useBinder(id: string) {
 
   useEffect(() => { fetch(); }, [fetch]);
 
-  const setSlot = useCallback(async (position: number, data: { cardId?: string | null; condition?: string; quantity?: number }) => {
+  const setSlot = useCallback(async (position: number, data: { cardId?: string | null; condition?: CardCondition; quantity?: number }) => {
     const res = await binderService.setSlot(id, position, data);
     setBinder(res.data);
   }, [id]);
