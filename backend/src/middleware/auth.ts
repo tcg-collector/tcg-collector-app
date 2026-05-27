@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { verifyToken } from "@clerk/backend";
 
 // Estende o tipo Request para incluir userId
+/* eslint-disable @typescript-eslint/no-namespace */
 declare global {
   namespace Express {
     interface Request {
@@ -9,6 +10,7 @@ declare global {
     }
   }
 }
+/* eslint-enable @typescript-eslint/no-namespace */
 
 export async function requireAuth(
   req: Request,

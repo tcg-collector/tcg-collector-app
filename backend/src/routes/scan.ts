@@ -1,5 +1,4 @@
 import { Router, Request, Response } from 'express';
-import { searchCardsByName } from '../services/PokeTCGService';
 import { Card } from '../models/Card';
 import axios from 'axios';
 
