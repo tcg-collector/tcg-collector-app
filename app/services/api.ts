@@ -7,17 +7,27 @@ export class ApiError extends Error {
   }
 }
 
-// Token de autenticação — atualizado pelo ClerkTokenSync no _layout.tsx
-let _authToken: string | null = null;
+// Getter de token — chamado antes de cada requisição para garantir token fresco
+let _tokenGetter: (() => Promise<string | null>) | null = null;
 
-export function setAuthToken(token: string | null) {
-  _authToken = token;
+export function setTokenGetter(getter: (() => Promise<string | null>) | null) {
+  _tokenGetter = getter;
+}
+
+// Mantido para compatibilidade
+export function setAuthToken(_token: string | null) {
+  // não faz mais nada — usar setTokenGetter
 }
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const url = `${API_BASE_URL}${path}`;
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (_authToken) headers['Authorization'] = `Bearer ${_authToken}`;
+
+  // Busca token fresco antes de cada requisição
+  if (_tokenGetter) {
+    const token = await _tokenGetter();
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+  }
 
   const response = await fetch(url, { headers, ...options });
 

@@ -81,8 +81,8 @@ export default function CreateBinderScreen() {
     try {
       const binder = await createBinder(name.trim(), grid, cover ?? undefined);
       router.replace(`/binder/${binder._id}`);
-    } catch {
-      showAlert('Erro', 'Não foi possível criar o binder.');
+    } catch (e) {
+      showAlert('Erro', e instanceof Error ? e.message : 'Não foi possível criar o binder.');
     } finally {
       setSaving(false);
     }
