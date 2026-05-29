@@ -7,33 +7,41 @@ export class ApiError extends Error {
   }
 }
 
-// Getter de token — chamado antes de cada requisição para garantir token fresco
+// Token cacheado + getter para refresh quando necessário
+let _authToken: string | null = null;
 let _tokenGetter: (() => Promise<string | null>) | null = null;
+
+export function setAuthToken(token: string | null) {
+  _authToken = token;
+}
 
 export function setTokenGetter(getter: (() => Promise<string | null>) | null) {
   _tokenGetter = getter;
 }
 
-// Mantido para compatibilidade
-export function setAuthToken(_token: string | null) {
-  // não faz mais nada — usar setTokenGetter
+async function getToken(): Promise<string | null> {
+  if (_authToken) return _authToken;
+  if (_tokenGetter) {
+    const fresh = await _tokenGetter();
+    if (fresh) _authToken = fresh;
+    return fresh;
+  }
+  return null;
 }
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const url = `${API_BASE_URL}${path}`;
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
 
-  // Busca token fresco antes de cada requisição
-  if (_tokenGetter) {
-    const token = await _tokenGetter();
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-  }
+  const token = await getToken();
+  if (token) headers['Authorization'] = `Bearer ${token}`;
 
   const response = await fetch(url, { headers, ...options });
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
-    throw new ApiError(response.status, body.error ?? response.statusText);
+    const message = body.error ?? response.statusText ?? `HTTP ${response.status}`;
+    throw new ApiError(response.status, `[${response.status}] ${message}`);
   }
 
   return response.json() as Promise<T>;

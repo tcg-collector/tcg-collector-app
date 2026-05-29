@@ -5,7 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { ClerkProvider, ClerkLoaded, useAuth } from '@clerk/clerk-expo';
 import { Colors } from '@/constants/colors';
-import { setTokenGetter } from '@/services/api';
+import { setAuthToken, setTokenGetter } from '@/services/api';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -46,8 +46,20 @@ function AuthGuard() {
 
   // Mantém o token da API atualizado
   useEffect(() => {
-    if (!isLoaded || !isSignedIn) { setTokenGetter(null); return; }
-    setTokenGetter(() => getToken());
+    if (!isLoaded || !isSignedIn) {
+      setAuthToken(null);
+      setTokenGetter(null);
+      return;
+    }
+    // Busca o token imediatamente e armazena no cache
+    getToken().then(setAuthToken);
+    // Guarda o getter para refresh automático quando o cache estiver vazio
+    setTokenGetter(getToken);
+    // Renovar token a cada 50 minutos (Clerk tokens duram 60 min)
+    const interval = setInterval(() => {
+      getToken().then(setAuthToken);
+    }, 50 * 60 * 1000);
+    return () => clearInterval(interval);
   }, [isLoaded, isSignedIn, getToken]);
 
   // Redirecionar baseado no estado de autenticação
