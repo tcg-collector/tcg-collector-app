@@ -150,8 +150,7 @@ export default function SignInScreen() {
             <Text style={styles.logo}>🔐</Text>
             <Text style={styles.appName}>Verificação necessária</Text>
             <Text style={styles.tagline}>
-              Enviamos um código para{'
-'}{email}
+              Enviamos um código para {email}
             </Text>
           </View>
           <View style={styles.form}>
