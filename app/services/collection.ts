@@ -17,15 +17,12 @@ export interface CollectionResponse {
   data: CollectionItem[];
 }
 
-// userId fixo para MVP (sem auth ainda)
-const MVP_USER_ID = '000000000000000000000001';
-
+// userId vem do token JWT — o backend usa req.userId
 export const collectionService = {
-  list: () => api.get<CollectionResponse>(`/api/collections/${MVP_USER_ID}`),
+  list: () => api.get<CollectionResponse>('/api/collections'),
 
   add: (cardId: string, condition: CollectionItem['condition'] = 'NM', quantity = 1) =>
     api.post<{ data: CollectionItem }>('/api/collections', {
-      userId: MVP_USER_ID,
       cardId,
       condition,
       quantity,

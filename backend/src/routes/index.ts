@@ -22,7 +22,7 @@ router.get('/', (_req, res) => {
       'GET  /api/cards',
       'GET  /api/cards/:id',
       'GET  /api/sets',
-      'GET  /api/collections/:userId',
+      'GET  /api/collections',
       'POST /api/collections',
       'GET  /api/prices/exchange',
       'GET  /api/prices/:cardId',
