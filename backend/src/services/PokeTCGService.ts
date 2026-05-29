@@ -64,24 +64,37 @@ function mapCard(c: PokeTCGCard) {
 }
 
 /** Sincroniza TODAS as cartas da PokéTCG API (paginado, ~18k cartas) */
-export async function syncAllCards(): Promise<number> {
-  let page = 1;
+export async function syncAllCards(startPage = 1): Promise<number> {
+  let page = startPage;
   const pageSize = 250;
   let total = 0;
+  const MAX_RETRIES = 3;
 
-  console.log('🔄 Iniciando sync completo de cartas...');
+  console.log(`🔄 Iniciando sync completo de cartas (a partir da página ${startPage})...`);
 
   while (true) {
     let response;
-    try {
-      response = await client.get<{ data: PokeTCGCard[]; totalCount: number }>(
-        '/cards',
-        { params: { pageSize, page, orderBy: 'set.releaseDate' } }
-      );
-    } catch (e) {
-      console.error(`❌ Erro na página ${page}:`, e);
-      break;
+    let retries = 0;
+    while (retries < MAX_RETRIES) {
+      try {
+        response = await client.get<{ data: PokeTCGCard[]; totalCount: number }>(
+          '/cards',
+          { params: { pageSize, page, orderBy: 'set.releaseDate' } }
+        );
+        break; // sucesso
+      } catch (e) {
+        retries++;
+        if (retries >= MAX_RETRIES) {
+          console.error(`❌ Erro na página ${page} após ${MAX_RETRIES} tentativas:`, (e as Error).message);
+          console.log(`⏭️  Para continuar, rode novamente com startPage=${page}`);
+          console.log(`✅ Sync parcial: ${total} cartas salvas`);
+          return total;
+        }
+        console.warn(`⚠️  Timeout na página ${page}, tentativa ${retries}/${MAX_RETRIES}. Aguardando 5s...`);
+        await sleep(5000);
+      }
     }
+    if (!response) break;
 
     const cards = response.data.data;
     if (!cards.length) break;
