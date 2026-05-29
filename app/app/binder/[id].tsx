@@ -421,21 +421,22 @@ export default function BinderDetailScreen() {
                   </View>
 
                   {/* CTA único de busca */}
-                  <View style={{ paddingHorizontal: 12, paddingBottom: 4 }}>
-                    <TouchableOpacity
-                      style={[styles.searchBtn, { borderRadius: 10, padding: 14, flexDirection: 'row', gap: 8, justifyContent: 'center' }]}
-                      onPress={handleSearch}
-                      disabled={searching || (!searchQuery.trim() && !selectedSet)}
-                    >
-                      {searching
-                        ? <ActivityIndicator color={Colors.void} size="small" />
-                        : <>
-                            <Ionicons name="search" size={18} color={Colors.void} />
-                            <Text style={{ color: Colors.void, fontWeight: '700', fontSize: 15 }}>Buscar cartas</Text>
-                          </>
-                      }
-                    </TouchableOpacity>
-                  </View>
+                  <TouchableOpacity
+                    style={[
+                      styles.searchCTABtn,
+                      (!searchQuery.trim() && !selectedSet) && styles.searchCTABtnDisabled,
+                    ]}
+                    onPress={handleSearch}
+                    disabled={searching || (!searchQuery.trim() && !selectedSet)}
+                  >
+                    {searching
+                      ? <ActivityIndicator color={Colors.void} size="small" />
+                      : <>
+                          <Ionicons name="search" size={18} color={Colors.void} />
+                          <Text style={styles.searchCTATxt}>Buscar</Text>
+                        </>
+                    }
+                  </TouchableOpacity>
 
                   {/* Resultados */}
                   <FlatList
@@ -700,6 +701,9 @@ const styles = StyleSheet.create({
   setFilterRow:        { flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 12, marginBottom: 4, backgroundColor: Colors.surface, borderRadius: 10, padding: 12, borderWidth: 1, borderColor: Colors.border },
   setFilterTxt:        { flex: 1, fontSize: 14, color: Colors.ash },
   setFilterTxtActive:  { color: Colors.gold, fontWeight: '600' },
+  searchCTABtn:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: Colors.gold, borderRadius: 12, padding: 16, marginHorizontal: 12, marginTop: 10, marginBottom: 4 },
+  searchCTABtnDisabled:{ opacity: 0.4 },
+  searchCTATxt:        { fontSize: 15, fontWeight: '700', color: Colors.void },
   searchRow:           { flexDirection: 'row', margin: 12, gap: 8 },
   searchInput:         { flex: 1, backgroundColor: Colors.surface, borderRadius: 10, padding: 12, color: Colors.snow, fontSize: 14 },
   searchBtn:           { backgroundColor: Colors.gold, borderRadius: 10, width: 46, alignItems: 'center', justifyContent: 'center' },
