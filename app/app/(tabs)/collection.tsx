@@ -3,7 +3,8 @@ import {
   Image, StyleSheet, ActivityIndicator, Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
+import { useCallback } from 'react';
 import { Colors } from '../../constants/colors';
 import { useBinders } from '../../hooks/useBinders';
 import { useCollection } from '../../hooks/useCollection';
@@ -18,7 +19,9 @@ function formatBRL(value: number): string {
 
 export default function CollectionScreen() {
   const router = useRouter();
-  const { binders, loading: loadingBinders, deleteBinder } = useBinders();
+  const { binders, loading: loadingBinders, deleteBinder, refetch } = useBinders();
+
+  useFocusEffect(useCallback(() => { refetch(); }, []));
   const { items, loading: loadingLoose, totalCards, totalValueUSD } = useCollection();
   const { rate } = useExchangeRate();
 
