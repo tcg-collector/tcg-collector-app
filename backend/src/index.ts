@@ -9,8 +9,28 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middlewares
-app.use(cors());
+// CORS explícito — necessário para Safari mobile e Clerk Production
+const corsOptions = {
+  origin: [
+    'https://tcgbindex.app',
+    'https://www.tcgbindex.app',
+    'https://tcg-collector-app.vercel.app',
+    'http://localhost:8081',
+    'http://localhost:8083',
+    'http://192.168.15.31:8081',
+    'http://192.168.15.31:8083',
+  ],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  optionsSuccessStatus: 200, // Safari preflight precisa de 200, não 204
+};
+
+app.use(cors(corsOptions));
+
+// Responde ao preflight OPTIONS em todas as rotas
+app.options('*', cors(corsOptions));
+
 app.use(express.json({ limit: '15mb' }));
 app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 
