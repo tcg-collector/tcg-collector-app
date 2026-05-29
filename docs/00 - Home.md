@@ -172,3 +172,21 @@ App para colecionadores brasileiros de cartas físicas Pokémon TCG.
 - **Sentry** (Fase 3): captura exceções em produção que usuários reais encontram
 - **E2E com Playwright** (Fase 3): testa fluxos completos (login → criar binder → scan)
 
+
+---
+
+## 🌐 Domínio e Clerk Production (maio/2026)
+
+| Item | Status | Detalhe |
+|------|--------|---------|
+| Domínio `tcgbindex.app` | ✅ Ativo | Registrado no Porkbun · 5 anos |
+| DNS Vercel | ✅ Configurado | A record + CNAME www → Vercel |
+| Clerk Production | ✅ Ativo | 5 CNAMEs verificados · SSL emitido |
+| App em `tcgbindex.app` | ✅ Funcionando | Login e-mail + Google OAuth ✅ |
+| `tcg-collector-app.vercel.app` | ✅ Mantido | Ainda funciona como alias |
+
+### URLs de produção atualizadas
+- **App**: https://tcgbindex.app
+- **Backend**: https://tcg-collector-app-production.up.railway.app
+- **Clerk instance**: Production (`pk_live_...` / `sk_live_...`)
+

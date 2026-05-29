@@ -7,7 +7,7 @@
 | Camada | Tecnologia |
 |--------|-----------|
 | Mobile | React Native + Expo SDK 54 + expo-router v6 |
-| Web | Expo Web + Vercel (static output) — `tcg-collector-app.vercel.app` |
+| Web | Expo Web + Vercel (static output) — `tcgbindex.app` (Production) |
 | Backend | Node.js + Express + TypeScript |
 | Banco de dados | MongoDB Atlas (M0 free) |
 | Auth | Clerk (e-mail + Google OAuth) |
@@ -15,7 +15,7 @@
 | Dados TCG | PokéTCG API (pokemontcg.io) |
 | Câmbio | open.er-api.com (free, sem chave) |
 | Deploy backend | Railway — `tcg-collector-app-production.up.railway.app` |
-| Deploy frontend web | Vercel — `tcg-collector-app.vercel.app` ✅ |
+| Deploy frontend web | Vercel — `tcgbindex.app` ✅ (Production) |
 
 ---
 
