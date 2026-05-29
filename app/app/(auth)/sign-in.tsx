@@ -45,7 +45,12 @@ export default function SignInScreen() {
     try {
       if (mode === 'sign-in') {
         const result = await signIn!.create({ identifier: email.trim(), password });
-        await setActiveSignIn!({ session: result.createdSessionId });
+        if (result.status === 'complete') {
+          await setActiveSignIn!({ session: result.createdSessionId });
+        } else {
+          // status pode ser 'needs_first_factor', 'needs_second_factor', etc.
+          showAlert('Erro', `Login incompleto (status: ${result.status}). Tente novamente ou redefina sua senha.`);
+        }
       } else {
         // Cria a conta e envia o código por e-mail
         await signUp!.create({ emailAddress: email.trim(), password });

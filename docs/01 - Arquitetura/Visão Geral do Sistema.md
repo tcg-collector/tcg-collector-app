@@ -51,13 +51,13 @@ PORT=(injetado pelo Railway)
 ### Frontend (app/.env — não commitado)
 ```
 EXPO_PUBLIC_API_URL=https://tcg-collector-app-production.up.railway.app
-EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
+EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_...
 ```
 
 ### Frontend (Vercel — Environment Variables)
 ```
 EXPO_PUBLIC_API_URL=https://tcg-collector-app-production.up.railway.app
-EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
+EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_...
 ```
 
 ---
@@ -79,8 +79,9 @@ EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
 | Rota | Método | Auth | Descrição |
 |------|--------|------|-----------|
 | `/health` | GET | ❌ | Health check |
-| `/api/cards` | GET | ❌ | Lista cartas (paginado) |
+| `/api/cards` | GET | ❌ | Lista cartas — filtros: `name`, `setId`, `page`, `limit` |
 | `/api/cards/:id` | GET | ❌ | Detalhe de carta |
+| `/api/sets` | GET | ❌ | Lista edições disponíveis no banco |
 | `/api/binders` | GET/POST | ✅ | Listar / criar binders |
 | `/api/binders/:id` | GET/DELETE | ✅ | Detalhe / excluir binder |
 | `/api/binders/:id/slots/:pos` | PATCH | ✅ | Adicionar/remover carta de slot |
@@ -89,6 +90,17 @@ EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
 ---
 
 *Veja também: [[../02 - Backend/API Reference]] · [[../04 - Produto/Visão do Produto]]*
+
+
+---
+
+## ⏰ Cron Jobs (Railway)
+
+| Job | Horário | Ação |
+|-----|---------|------|
+| Sync de preços | Todo dia 06:00 UTC (03:00 BRT) | `syncPricesOnly()` — atualiza preços TCGPlayer de todas as ~12k cartas |
+
+O sync completo inicial (`syncAllCards`) foi executado manualmente via Railway SSH e populou o banco com **12.032 cartas**. Novos cards lançados são pegos no sync diário.
 
 ---
 

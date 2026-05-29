@@ -13,6 +13,8 @@ Registro de todas as decisões de arquitetura importantes do projeto. Cada ADR d
 | [[ADR-003 - Expo EAS sem nativo local]] | Build sem Mac/Android Studio | ✅ Aprovada |
 | [[ADR-004 - TypeScript strict]] | Linguagem tipada no backend | ✅ Aprovada |
 | [[ADR-005 - expo-router]] | Roteamento file-based | ✅ Aprovada |
+| [[ADR-006 - Clerk Production Instance]] | Instância Clerk Production correta em prod | ✅ Aprovada |
+| [[ADR-007 - Sync de Cartas PokéTCG]] | Estratégia de sync do catálogo de cartas | ✅ Aprovada |
 
 ## Template para novos ADRs
 

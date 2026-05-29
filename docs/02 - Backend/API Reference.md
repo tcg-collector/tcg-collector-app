@@ -38,17 +38,33 @@ Verifica se a API está rodando. Rota pública.
 ## Cards
 
 ### `GET /api/cards`
-Lista cartas com paginação e filtros. Rota pública.
+Lista cartas com paginação e filtros. Rota pública. Banco local com ~12.000 cartas sincronizadas.
 
 | Param | Tipo | Default | Descrição |
 |-------|------|---------|-----------|
 | `page` | number | 1 | Página |
-| `limit` | number | 20 | Itens por página (máx 100) |
-| `set` | string | — | Filtrar por ID da expansão |
-| `name` | string | — | Busca parcial por nome |
+| `limit` | number | 40 | Itens por página |
+| `setId` | string | — | Filtrar por ID da edição (ex: `base1`) |
+| `name` | string | — | Busca parcial por nome (case-insensitive) |
 
 ### `GET /api/cards/:id`
-Retorna uma carta pelo ID da PokéTCG API (ex: `base1-4`). Rota pública.
+Retorna uma carta pelo `_id` (ex: `base1-4`). Rota pública.
+
+---
+
+## Sets
+
+### `GET /api/sets`
+Lista todas as edições que têm cartas no banco. Gerado por agregação da coleção `Card`. Rota pública.
+
+**Resposta:**
+```json
+{
+  "data": [
+    { "_id": "base1", "name": "Base Set", "series": "Base", "images": { "symbol": "...", "logo": "..." }, "cardCount": 102 }
+  ]
+}
+```
 
 ---
 
