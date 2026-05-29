@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/colors';
+import { useUser } from '@clerk/clerk-expo';
 import { useBinders } from '@/hooks/useBinders';
 import { useExchangeRate } from '@/hooks/useExchangeRate';
 import type { BinderSlot } from '@/services/binders';
@@ -117,7 +118,11 @@ function SettingRow({ icon, label, value, toggle, danger, onPress }: SettingRowP
 // ── tela principal ────────────────────────────────────────────────────────────
 
 export default function ProfileScreen() {
+  const { user } = useUser();
   const { loading, stats } = useCollectionStats();
+  const email = user?.primaryEmailAddress?.emailAddress ?? '';
+  const firstName = user?.firstName ?? user?.username ?? email.split('@')[0] ?? '?';
+  const avatarLetter = firstName.charAt(0).toUpperCase();
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -125,10 +130,10 @@ export default function ProfileScreen() {
       {/* Hero */}
       <View style={styles.hero}>
         <View style={styles.avatar}>
-          <Text style={styles.avatarText}>M</Text>
+          <Text style={styles.avatarText}>{avatarLetter}</Text>
         </View>
-        <Text style={styles.name}>Matheus</Text>
-        <Text style={styles.email}>matheuscmoura7@gmail.com</Text>
+        <Text style={styles.name}>{firstName}</Text>
+        <Text style={styles.email}>{email}</Text>
         <View style={styles.planBadge}>
           <Ionicons name="flash" size={12} color={Colors.gold} />
           <Text style={styles.planText}>Plano Gratuito</Text>
