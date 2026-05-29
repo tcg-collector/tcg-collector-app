@@ -28,9 +28,13 @@ export default function SignInScreen() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Verificação OTP
+  // Verificação OTP (sign-up)
   const [pendingVerification, setPendingVerification] = useState(false);
   const [code, setCode] = useState('');
+
+  // Segundo fator (sign-in com email code)
+  const [pendingSecondFactor, setPendingSecondFactor] = useState(false);
+  const [secondFactorCode, setSecondFactorCode] = useState('');
 
   const isLoaded = signInLoaded && signUpLoaded;
 
@@ -47,9 +51,12 @@ export default function SignInScreen() {
         const result = await signIn!.create({ identifier: email.trim(), password });
         if (result.status === 'complete') {
           await setActiveSignIn!({ session: result.createdSessionId });
+        } else if (result.status === 'needs_second_factor') {
+          // Prepara e pede o código de e-mail como segundo fator
+          await signIn!.prepareSecondFactor({ strategy: 'email_code' });
+          setPendingSecondFactor(true);
         } else {
-          // status pode ser 'needs_first_factor', 'needs_second_factor', etc.
-          showAlert('Erro', `Login incompleto (status: ${result.status}). Tente novamente ou redefina sua senha.`);
+          showAlert('Erro', `Login incompleto (status: ${result.status}). Tente novamente.`);
         }
       } else {
         // Cria a conta e envia o código por e-mail
@@ -84,6 +91,27 @@ export default function SignInScreen() {
     }
   };
 
+  // Verifica o segundo fator (sign-in com email code)
+  const handleVerifySecondFactor = async () => {
+    if (!isLoaded || loading || !secondFactorCode.trim()) return;
+    setLoading(true);
+    try {
+      const result = await signIn!.attemptSecondFactor({
+        strategy: 'email_code',
+        code: secondFactorCode.trim(),
+      });
+      if (result.status === 'complete') {
+        await setActiveSignIn!({ session: result.createdSessionId });
+      } else {
+        showAlert('Erro', 'Verificação incompleta. Tente novamente.');
+      }
+    } catch (e: any) {
+      showAlert('Erro', e?.errors?.[0]?.message ?? 'Código inválido');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Login com Google
   const handleGoogle = async () => {
     if (loading) return;
@@ -109,6 +137,51 @@ export default function SignInScreen() {
       setLoading(false);
     }
   };
+
+  // ── Tela de segundo fator (sign-in) ─────────────────────────────────────────
+  if (pendingSecondFactor) {
+    return (
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <View style={styles.content}>
+          <View style={styles.header}>
+            <Text style={styles.logo}>🔐</Text>
+            <Text style={styles.appName}>Verificação necessária</Text>
+            <Text style={styles.tagline}>
+              Enviamos um código para{'
+'}{email}
+            </Text>
+          </View>
+          <View style={styles.form}>
+            <TextInput
+              style={[styles.input, styles.codeInput]}
+              placeholder="000000"
+              placeholderTextColor={Colors.ash}
+              value={secondFactorCode}
+              onChangeText={setSecondFactorCode}
+              keyboardType="number-pad"
+              maxLength={6}
+              autoFocus
+            />
+            <TouchableOpacity
+              style={styles.primaryBtn}
+              onPress={handleVerifySecondFactor}
+              disabled={loading || secondFactorCode.length < 6}
+            >
+              {loading
+                ? <ActivityIndicator color={Colors.void} />
+                : <Text style={styles.primaryBtnTxt}>Verificar código</Text>}
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity onPress={() => { setPendingSecondFactor(false); setSecondFactorCode(''); }}>
+            <Text style={styles.backLink}>← Voltar</Text>
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    );
+  }
 
   // ── Tela de verificação OTP ──────────────────────────────────────────────
   if (pendingVerification) {
