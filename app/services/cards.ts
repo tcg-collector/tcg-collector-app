@@ -41,10 +41,11 @@ export interface CardResponse {
 }
 
 export const cardsService = {
-  list: (params?: { name?: string; set?: string; page?: number; limit?: number }) => {
+  list: (params?: { name?: string; set?: string; setId?: string; page?: number; limit?: number }) => {
     const qs = new URLSearchParams();
     if (params?.name)  qs.set('name', params.name);
     if (params?.set)   qs.set('set', params.set);
+    if (params?.setId) qs.set('setId', params.setId);
     if (params?.page)  qs.set('page', String(params.page));
     if (params?.limit) qs.set('limit', String(params.limit));
     const query = qs.toString() ? `?${qs}` : '';

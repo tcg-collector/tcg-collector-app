@@ -10,6 +10,8 @@ import { Colors } from '../../constants/colors';
 import { useBinder } from '../../hooks/useBinders';
 import { useExchangeRate } from '../../hooks/useExchangeRate';
 import { cardsService } from '../../services/cards';
+import { setsService } from '../../services/sets';
+import type { SetSummary } from '../../services/sets';
 import { scanService, CardCondition, GRID_CONFIGS } from '../../services/binders';
 import type { Card } from '../../services/cards';
 
@@ -89,6 +91,12 @@ export default function BinderDetailScreen() {
   const [searchResults, setSearchResults] = useState<Card[]>([]);
   const [searching, setSearching] = useState(false);
 
+  // Set picker
+  const [selectedSet, setSelectedSet] = useState<SetSummary | null>(null);
+  const [sets, setSets] = useState<SetSummary[]>([]);
+  const [showSetPicker, setShowSetPicker] = useState(false);
+  const [setSearch, setSetSearch] = useState('');
+
   const [pendingCard, setPendingCard] = useState<Card | null>(null);
   const [pendingCondition, setPendingCondition] = useState<CardCondition>('NM');
   const [adding, setAdding] = useState(false);
@@ -115,6 +123,14 @@ export default function BinderDetailScreen() {
     return sum + (base ?? 0) * mult * s.quantity * rate;
   }, 0);
 
+  const loadSets = async () => {
+    if (sets.length > 0) return;
+    try {
+      const res = await setsService.list();
+      setSets(res.data);
+    } catch {}
+  };
+
   const openAddModal = (pos: number) => {
     setSelectedSlot(pos);
     setAddMode('search');
@@ -123,6 +139,8 @@ export default function BinderDetailScreen() {
     setPendingCard(null);
     setScanResult(null);
     setScanCandidates([]);
+    setSelectedSet(null);
+    void loadSets();
   };
 
   const closeModal = () => {
@@ -133,11 +151,15 @@ export default function BinderDetailScreen() {
   };
 
   const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
+    if (!searchQuery.trim() && !selectedSet) return;
     setSearching(true);
     setPendingCard(null);
     try {
-      const res = await cardsService.list({ name: searchQuery, limit: 20 });
+      const res = await cardsService.list({
+        name:  searchQuery.trim() || undefined,
+        setId: selectedSet?._id,
+        limit: 60,
+      });
       setSearchResults(res.data);
     } finally {
       setSearching(false);
@@ -368,6 +390,7 @@ export default function BinderDetailScreen() {
                 </ScrollView>
               ) : (
                 <>
+                  {/* Busca por nome */}
                   <View style={styles.searchRow}>
                     <TextInput
                       style={styles.searchInput}
@@ -384,10 +407,36 @@ export default function BinderDetailScreen() {
                         : <Ionicons name="search" size={18} color={Colors.void} />}
                     </TouchableOpacity>
                   </View>
+
+                  {/* Filtro por edição */}
+                  <TouchableOpacity
+                    style={styles.setFilterRow}
+                    onPress={() => { setSetSearch(''); setShowSetPicker(true); }}
+                  >
+                    <Ionicons name="layers-outline" size={16} color={selectedSet ? Colors.gold : Colors.ash} />
+                    <Text style={[styles.setFilterTxt, selectedSet && styles.setFilterTxtActive]} numberOfLines={1}>
+                      {selectedSet ? selectedSet.name : 'Filtrar por edição'}
+                    </Text>
+                    {selectedSet
+                      ? <TouchableOpacity onPress={() => { setSelectedSet(null); setSearchResults([]); }}>
+                          <Ionicons name="close-circle" size={16} color={Colors.ash} />
+                        </TouchableOpacity>
+                      : <Ionicons name="chevron-down" size={14} color={Colors.ash} />
+                    }
+                  </TouchableOpacity>
+
+                  {/* Resultados */}
                   <FlatList
                     data={searchResults}
                     keyExtractor={c => c._id}
                     contentContainerStyle={{ padding: 12, gap: 10 }}
+                    ListEmptyComponent={
+                      !searching && (searchQuery.trim() || selectedSet)
+                        ? <Text style={{ color: Colors.ash, textAlign: 'center', marginTop: 24 }}>
+                            Nenhuma carta encontrada
+                          </Text>
+                        : null
+                    }
                     renderItem={({ item }) => {
                       const nmPrice = priceForCondition(item, 'NM', rate);
                       return (
@@ -408,6 +457,58 @@ export default function BinderDetailScreen() {
                       );
                     }}
                   />
+
+                  {/* Modal: Set Picker */}
+                  <Modal visible={showSetPicker} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setShowSetPicker(false)}>
+                    <View style={styles.modal}>
+                      <View style={styles.modalHandle} />
+                      <View style={styles.modalHeader}>
+                        <Text style={styles.modalTitle}>Escolher edição</Text>
+                        <TouchableOpacity onPress={() => setShowSetPicker(false)}>
+                          <Ionicons name="close" size={22} color={Colors.ash} />
+                        </TouchableOpacity>
+                      </View>
+                      <View style={{ paddingHorizontal: 12, paddingBottom: 8 }}>
+                        <TextInput
+                          style={styles.searchInput}
+                          placeholder="Buscar edição..."
+                          placeholderTextColor={Colors.ash}
+                          value={setSearch}
+                          onChangeText={setSetSearch}
+                          autoFocus
+                        />
+                      </View>
+                      <FlatList
+                        data={sets.filter(s =>
+                          !setSearch.trim() ||
+                          s.name.toLowerCase().includes(setSearch.toLowerCase()) ||
+                          s.series.toLowerCase().includes(setSearch.toLowerCase())
+                        )}
+                        keyExtractor={s => s._id}
+                        contentContainerStyle={{ padding: 12, gap: 8 }}
+                        renderItem={({ item }) => (
+                          <TouchableOpacity
+                            style={[styles.resultRow, selectedSet?._id === item._id && { borderWidth: 1, borderColor: Colors.gold }]}
+                            onPress={() => {
+                              setSelectedSet(item);
+                              setShowSetPicker(false);
+                              setSearchResults([]);
+                            }}
+                          >
+                            {item.images?.symbol
+                              ? <Image source={{ uri: item.images.symbol }} style={{ width: 28, height: 28 }} resizeMode="contain" />
+                              : <Ionicons name="layers-outline" size={24} color={Colors.ash} />
+                            }
+                            <View style={{ flex: 1 }}>
+                              <Text style={styles.resultName}>{item.name}</Text>
+                              <Text style={styles.resultSet}>{item.series} · {item.cardCount} cartas</Text>
+                            </View>
+                            {selectedSet?._id === item._id && <Ionicons name="checkmark-circle" size={18} color={Colors.gold} />}
+                          </TouchableOpacity>
+                        )}
+                      />
+                    </View>
+                  </Modal>
                 </>
               )}
             </View>
@@ -584,6 +685,9 @@ const styles = StyleSheet.create({
   tabActive:           { backgroundColor: Colors.surface2 },
   tabTxt:              { fontSize: 14, color: Colors.ash },
   tabTxtActive:        { color: Colors.gold, fontWeight: '600' },
+  setFilterRow:        { flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 12, marginBottom: 4, backgroundColor: Colors.surface, borderRadius: 10, padding: 12, borderWidth: 1, borderColor: Colors.border },
+  setFilterTxt:        { flex: 1, fontSize: 14, color: Colors.ash },
+  setFilterTxtActive:  { color: Colors.gold, fontWeight: '600' },
   searchRow:           { flexDirection: 'row', margin: 12, gap: 8 },
   searchInput:         { flex: 1, backgroundColor: Colors.surface, borderRadius: 10, padding: 12, color: Colors.snow, fontSize: 14 },
   searchBtn:           { backgroundColor: Colors.gold, borderRadius: 10, width: 46, alignItems: 'center', justifyContent: 'center' },
