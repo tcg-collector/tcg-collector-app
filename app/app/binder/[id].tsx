@@ -390,32 +390,14 @@ export default function BinderDetailScreen() {
                 </ScrollView>
               ) : (
                 <>
-                  {/* Busca por nome */}
-                  <View style={styles.searchRow}>
-                    <TextInput
-                      style={styles.searchInput}
-                      placeholder="Nome da carta em inglês..."
-                      placeholderTextColor={Colors.ash}
-                      value={searchQuery}
-                      onChangeText={setSearchQuery}
-                      onSubmitEditing={handleSearch}
-                      returnKeyType="search"
-                    />
-                    <TouchableOpacity style={styles.searchBtn} onPress={handleSearch} disabled={searching}>
-                      {searching
-                        ? <ActivityIndicator color={Colors.void} size="small" />
-                        : <Ionicons name="search" size={18} color={Colors.void} />}
-                    </TouchableOpacity>
-                  </View>
-
-                  {/* Filtro por edição */}
+                  {/* Filtro por edição — acima do campo de texto */}
                   <TouchableOpacity
                     style={styles.setFilterRow}
                     onPress={() => { setSetSearch(''); setShowSetPicker(true); }}
                   >
                     <Ionicons name="layers-outline" size={16} color={selectedSet ? Colors.gold : Colors.ash} />
                     <Text style={[styles.setFilterTxt, selectedSet && styles.setFilterTxtActive]} numberOfLines={1}>
-                      {selectedSet ? selectedSet.name : 'Filtrar por edição'}
+                      {selectedSet ? selectedSet.name : 'Buscar por edição (opcional)'}
                     </Text>
                     {selectedSet
                       ? <TouchableOpacity onPress={() => { setSelectedSet(null); setSearchResults([]); }}>
@@ -424,6 +406,36 @@ export default function BinderDetailScreen() {
                       : <Ionicons name="chevron-down" size={14} color={Colors.ash} />
                     }
                   </TouchableOpacity>
+
+                  {/* Campo de busca por nome */}
+                  <View style={{ paddingHorizontal: 12 }}>
+                    <TextInput
+                      style={styles.searchInput}
+                      placeholder="Nome da carta em inglês (opcional)..."
+                      placeholderTextColor={Colors.ash}
+                      value={searchQuery}
+                      onChangeText={setSearchQuery}
+                      onSubmitEditing={handleSearch}
+                      returnKeyType="search"
+                    />
+                  </View>
+
+                  {/* CTA único de busca */}
+                  <View style={{ paddingHorizontal: 12, paddingBottom: 4 }}>
+                    <TouchableOpacity
+                      style={[styles.searchBtn, { borderRadius: 10, padding: 14, flexDirection: 'row', gap: 8, justifyContent: 'center' }]}
+                      onPress={handleSearch}
+                      disabled={searching || (!searchQuery.trim() && !selectedSet)}
+                    >
+                      {searching
+                        ? <ActivityIndicator color={Colors.void} size="small" />
+                        : <>
+                            <Ionicons name="search" size={18} color={Colors.void} />
+                            <Text style={{ color: Colors.void, fontWeight: '700', fontSize: 15 }}>Buscar cartas</Text>
+                          </>
+                      }
+                    </TouchableOpacity>
+                  </View>
 
                   {/* Resultados */}
                   <FlatList
