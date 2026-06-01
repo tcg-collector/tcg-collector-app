@@ -40,7 +40,8 @@ export const binderService = {
   get:  (id: string) => api.get<{ data: Binder }>(`/api/binders/${id}`),
   create: (name: string, gridConfig: GridConfig, coverPhotoUrl?: string) =>
     api.post<{ data: Binder }>('/api/binders', { name, gridConfig, coverPhotoUrl }),
-  delete: (id: string) => api.delete<{ message: string }>(`/api/binders/${id}`),
+  delete:  (id: string) => api.delete<{ message: string }>(`/api/binders/${id}`),
+  addPage: (id: string) => api.post<{ data: Binder }>(`/api/binders/${id}/pages`, {}),
   setSlot: (binderId: string, position: number, data: {
     cardId?: string | null;
     condition?: CardCondition;
