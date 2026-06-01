@@ -29,7 +29,7 @@ export default function CollectionScreen() {
   useFocusEffect(useCallback(() => { refetch(); }, []));
 
   // Modal: adicionar carta avulsa
-  const { addCard, refetch: refetchCollection } = useCollection();
+  const { addCard, refetch: refetchCollection, items, loading: loadingLoose, totalCards, totalValueUSD } = useCollection();
   const [showAddLoose, setShowAddLoose] = useState(false);
   const [looseQuery, setLooseQuery] = useState('');
   const [looseResults, setLooseResults] = useState<Card[]>([]);
@@ -69,7 +69,6 @@ export default function CollectionScreen() {
       if (typeof window !== 'undefined') window.alert('Erro ao adicionar carta');
     } finally { setLooseAdding(false); }
   };
-  const { items, loading: loadingLoose, totalCards, totalValueUSD } = useCollection();
   const { rate } = useExchangeRate();
 
   const looseOnly = items.filter(_i => true); // avulso = tudo sem binder por enquanto
