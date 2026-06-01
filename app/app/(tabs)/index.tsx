@@ -41,7 +41,7 @@ export default function HomeScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.greeting}>Olá, Matheus 👋</Text>
+          <Text style={styles.greeting}>Seja bem-vindo 👋</Text>
           <Text style={styles.subtitle}>Seu binder digital</Text>
         </View>
         <TouchableOpacity style={styles.bell}>
@@ -104,18 +104,6 @@ export default function HomeScreen() {
           )}
         />
       )}
-
-      {/* Add CTA */}
-      <TouchableOpacity style={styles.addBanner}>
-        <View style={styles.addIcon}>
-          <Ionicons name="add" size={20} color={Colors.gold} />
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.addTitle}>Adicionar carta</Text>
-          <Text style={styles.addSub}>Busque por nome ou scan pela câmera</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={18} color={Colors.ash} />
-      </TouchableOpacity>
     </ScrollView>
   );
 }

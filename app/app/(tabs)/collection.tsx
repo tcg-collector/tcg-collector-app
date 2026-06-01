@@ -4,10 +4,14 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
+import { Modal, TextInput, FlatList, Image } from 'react-native';
 import { Colors } from '../../constants/colors';
 import { useBinders } from '../../hooks/useBinders';
-import { useCollection } from '../../hooks/useCollection';
+import { cardsService } from '../../services/cards';
+import { setsService } from '../../services/sets';
+import type { Card } from '../../services/cards';
+import type { SetSummary } from '../../services/sets';
 import { useExchangeRate } from '../../hooks/useExchangeRate';
 import { GRID_CONFIGS } from '../../services/binders';
 
@@ -22,6 +26,48 @@ export default function CollectionScreen() {
   const { binders, loading: loadingBinders, deleteBinder, refetch } = useBinders();
 
   useFocusEffect(useCallback(() => { refetch(); }, []));
+
+  // Modal: adicionar carta avulsa
+  const { addCard, refetch: refetchCollection } = useCollection();
+  const [showAddLoose, setShowAddLoose] = useState(false);
+  const [looseQuery, setLooseQuery] = useState('');
+  const [looseResults, setLooseResults] = useState<Card[]>([]);
+  const [looseSearching, setLooseSearching] = useState(false);
+  const [looseSelectedSet, setLooseSelectedSet] = useState<SetSummary | null>(null);
+  const [looseSets, setLooseSets] = useState<SetSummary[]>([]);
+  const [looseShowSetPicker, setLooseShowSetPicker] = useState(false);
+  const [looseSetSearch, setLooseSetSearch] = useState('');
+  const [looseAdding, setLooseAdding] = useState(false);
+
+  const openAddLoose = async () => {
+    setShowAddLoose(true);
+    setLooseQuery('');
+    setLooseResults([]);
+    setLooseSelectedSet(null);
+    if (looseSets.length === 0) {
+      try { const r = await setsService.list(); setLooseSets(r.data); } catch {}
+    }
+  };
+
+  const handleLooseSearch = async () => {
+    if (!looseQuery.trim() && !looseSelectedSet) return;
+    setLooseSearching(true);
+    try {
+      const res = await cardsService.list({ name: looseQuery.trim() || undefined, setId: looseSelectedSet?._id, limit: 60 });
+      setLooseResults(res.data);
+    } finally { setLooseSearching(false); }
+  };
+
+  const handleAddLoose = async (card: Card) => {
+    setLooseAdding(true);
+    try {
+      await addCard(card._id, 'NM', 1);
+      refetchCollection();
+      setShowAddLoose(false);
+    } catch (e) {
+      if (typeof window !== 'undefined') window.alert('Erro ao adicionar carta');
+    } finally { setLooseAdding(false); }
+  };
   const { items, loading: loadingLoose, totalCards, totalValueUSD } = useCollection();
   const { rate } = useExchangeRate();
 
@@ -119,7 +165,13 @@ export default function CollectionScreen() {
       {/* Seção Avulso */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Avulso</Text>
-        <Text style={styles.sectionCount}>{looseOnly.length} cartas</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <Text style={styles.sectionCount}>{looseOnly.length} cartas</Text>
+          <TouchableOpacity style={styles.addBtn} onPress={openAddLoose}>
+            <Ionicons name="add" size={18} color={Colors.void} />
+            <Text style={styles.addBtnText}>Adicionar</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {loadingLoose ? (
@@ -155,11 +207,129 @@ export default function CollectionScreen() {
         </View>
       )}
     </ScrollView>
+
+      {/* Modal: Adicionar carta avulsa */}
+      <Modal visible={showAddLoose} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setShowAddLoose(false)}>
+        <View style={styles.modal}>
+          <View style={styles.modalHandle} />
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Adicionar carta avulsa</Text>
+            <TouchableOpacity onPress={() => setShowAddLoose(false)}>
+              <Ionicons name="close" size={22} color={Colors.ash} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Filtro por edição */}
+          <TouchableOpacity style={styles.setFilterRow} onPress={() => { setLooseSetSearch(''); setLooseShowSetPicker(true); }}>
+            <Ionicons name="layers-outline" size={16} color={looseSelectedSet ? Colors.gold : Colors.ash} />
+            <Text style={[styles.setFilterTxt, looseSelectedSet && styles.setFilterTxtActive]} numberOfLines={1}>
+              {looseSelectedSet ? looseSelectedSet.name : 'Buscar por edição (opcional)'}
+            </Text>
+            {looseSelectedSet
+              ? <TouchableOpacity onPress={() => { setLooseSelectedSet(null); setLooseResults([]); }}>
+                  <Ionicons name="close-circle" size={16} color={Colors.ash} />
+                </TouchableOpacity>
+              : <Ionicons name="chevron-down" size={14} color={Colors.ash} />
+            }
+          </TouchableOpacity>
+
+          {/* Campo de busca */}
+          <View style={{ paddingHorizontal: 12 }}>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Nome da carta em inglês (opcional)..."
+              placeholderTextColor={Colors.ash}
+              value={looseQuery}
+              onChangeText={setLooseQuery}
+              onSubmitEditing={handleLooseSearch}
+              returnKeyType="search"
+            />
+          </View>
+
+          {/* Botão buscar */}
+          <TouchableOpacity
+            style={[styles.searchCTABtn, (!looseQuery.trim() && !looseSelectedSet) && styles.searchCTABtnDisabled]}
+            onPress={handleLooseSearch}
+            disabled={looseSearching || (!looseQuery.trim() && !looseSelectedSet)}
+          >
+            {looseSearching
+              ? <ActivityIndicator color={Colors.void} size="small" />
+              : <><Ionicons name="search" size={18} color={Colors.void} /><Text style={styles.searchCTATxt}>Buscar</Text></>
+            }
+          </TouchableOpacity>
+
+          {/* Resultados */}
+          <FlatList
+            data={looseResults}
+            keyExtractor={c => c._id}
+            contentContainerStyle={{ padding: 12, gap: 10 }}
+            renderItem={({ item }) => (
+              <TouchableOpacity style={styles.resultRow} onPress={() => handleAddLoose(item)} disabled={looseAdding}>
+                <Image source={{ uri: item.images.small }} style={styles.resultImg} resizeMode="contain" />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.resultName}>{item.name}</Text>
+                  <Text style={styles.resultSet}>{item.set.name} · #{item.number}</Text>
+                  <Text style={styles.resultRarity}>{item.rarity}</Text>
+                </View>
+                <Ionicons name="add-circle" size={24} color={Colors.gold} />
+              </TouchableOpacity>
+            )}
+          />
+
+          {/* Modal: Set picker */}
+          <Modal visible={looseShowSetPicker} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setLooseShowSetPicker(false)}>
+            <View style={styles.modal}>
+              <View style={styles.modalHandle} />
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Escolher edição</Text>
+                <TouchableOpacity onPress={() => setLooseShowSetPicker(false)}>
+                  <Ionicons name="close" size={22} color={Colors.ash} />
+                </TouchableOpacity>
+              </View>
+              <View style={{ paddingHorizontal: 12, paddingBottom: 8 }}>
+                <TextInput style={styles.searchInput} placeholder="Buscar edição..." placeholderTextColor={Colors.ash} value={looseSetSearch} onChangeText={setLooseSetSearch} autoFocus />
+              </View>
+              <FlatList
+                data={looseSets.filter(s => !looseSetSearch.trim() || s.name.toLowerCase().includes(looseSetSearch.toLowerCase()) || s.series.toLowerCase().includes(looseSetSearch.toLowerCase()))}
+                keyExtractor={s => s._id}
+                contentContainerStyle={{ padding: 12, gap: 8 }}
+                renderItem={({ item }) => (
+                  <TouchableOpacity style={styles.resultRow} onPress={() => { setLooseSelectedSet(item); setLooseShowSetPicker(false); setLooseResults([]); }}>
+                    {item.images?.symbol ? <Image source={{ uri: item.images.symbol }} style={{ width: 28, height: 28 }} resizeMode="contain" /> : <Ionicons name="layers-outline" size={24} color={Colors.ash} />}
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.resultName}>{item.name}</Text>
+                      <Text style={styles.resultSet}>{item.series} · {item.cardCount} cartas</Text>
+                    </View>
+                    {looseSelectedSet?._id === item._id && <Ionicons name="checkmark-circle" size={18} color={Colors.gold} />}
+                  </TouchableOpacity>
+                )}
+              />
+            </View>
+          </Modal>
+        </View>
+      </Modal>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container:   { flex: 1, backgroundColor: Colors.void },
+  modal:          { flex: 1, backgroundColor: Colors.void },
+  modalHandle:    { width: 40, height: 4, backgroundColor: Colors.border, borderRadius: 2, alignSelf: 'center', marginTop: 10 },
+  modalHeader:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16 },
+  modalTitle:     { fontSize: 16, fontWeight: '700', color: Colors.snow },
+  setFilterRow:   { flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 12, marginBottom: 4, backgroundColor: Colors.surface, borderRadius: 10, padding: 12, borderWidth: 1, borderColor: Colors.border },
+  setFilterTxt:   { flex: 1, fontSize: 14, color: Colors.ash },
+  setFilterTxtActive: { color: Colors.gold, fontWeight: '600' },
+  searchInput:    { backgroundColor: Colors.surface, borderRadius: 10, padding: 12, color: Colors.snow, fontSize: 14, marginBottom: 8 },
+  searchCTABtn:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: Colors.gold, borderRadius: 12, padding: 14, marginHorizontal: 12, marginBottom: 4 },
+  searchCTABtnDisabled: { opacity: 0.4 },
+  searchCTATxt:   { fontSize: 15, fontWeight: '700', color: Colors.void },
+  resultRow:      { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface, borderRadius: 10, padding: 10, gap: 12 },
+  resultImg:      { width: 44, height: 61, borderRadius: 4 },
+  resultName:     { fontSize: 14, fontWeight: '600', color: Colors.snow },
+  resultSet:      { fontSize: 12, color: Colors.ash, marginTop: 2 },
+  resultRarity:   { fontSize: 11, color: Colors.gold, marginTop: 2 },
+  container:      { flex: 1, backgroundColor: Colors.void },
   content:     { paddingBottom: 40 },
   summary:     { flexDirection: 'row', backgroundColor: Colors.surface, marginHorizontal: 16, marginTop: 16, borderRadius: 14, padding: 16, justifyContent: 'space-around' },
   summaryItem: { alignItems: 'center' },

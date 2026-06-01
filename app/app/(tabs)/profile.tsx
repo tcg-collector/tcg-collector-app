@@ -121,8 +121,7 @@ export default function ProfileScreen() {
   const { user } = useUser();
   const { loading, stats } = useCollectionStats();
   const email = user?.primaryEmailAddress?.emailAddress ?? '';
-  const firstName = user?.firstName ?? user?.username ?? email.split('@')[0] ?? '?';
-  const avatarLetter = firstName.charAt(0).toUpperCase();
+  const avatarLetter = email.charAt(0).toUpperCase();
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -132,8 +131,7 @@ export default function ProfileScreen() {
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>{avatarLetter}</Text>
         </View>
-        <Text style={styles.name}>{firstName}</Text>
-        <Text style={styles.email}>{email}</Text>
+        <Text style={styles.email} numberOfLines={1}>{email}</Text>
         <View style={styles.planBadge}>
           <Ionicons name="flash" size={12} color={Colors.gold} />
           <Text style={styles.planText}>Plano Gratuito</Text>
