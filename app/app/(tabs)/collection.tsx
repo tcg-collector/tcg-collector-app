@@ -71,7 +71,21 @@ export default function CollectionScreen() {
   };
   const { rate } = useExchangeRate();
 
-  const looseOnly = items.filter(_i => true); // avulso = tudo sem binder por enquanto
+  const looseOnly = items.filter(_i => true);
+
+  // Totais combinados: avulso + binders
+  const COND_MULT: Record<string, number> = { NM: 1, LP: 0.8, MP: 0.6, HP: 0.4, DMG: 0.2 };
+  const binderCardsTotal = binders.reduce((sum, b) =>
+    sum + b.slots.filter(s => s.cardId).length, 0);
+  const binderValueUSD = binders.reduce((sum, b) =>
+    sum + b.slots.reduce((s2, slot) => {
+      if (!slot.cardId || !slot.card) return s2;
+      const c = slot.card as any;
+      const base = c.prices?.holofoil?.market ?? c.prices?.normal?.market ?? 0;
+      return s2 + (base ?? 0) * (COND_MULT[slot.condition] ?? 1);
+    }, 0), 0);
+  const totalAllCards = totalCards + binderCardsTotal;
+  const totalAllValueUSD = totalValueUSD + binderValueUSD;
   const totalBRL = rate ? totalAllValueUSD * rate : 0;
 
   const handleDeleteBinder = (id: string, name: string) => {
