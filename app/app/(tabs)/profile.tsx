@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/colors';
-import { useUser } from '@clerk/clerk-expo';
+import { useUser, useClerk } from '@clerk/clerk-expo';
 import { useBinders } from '@/hooks/useBinders';
 import { useExchangeRate } from '@/hooks/useExchangeRate';
 import type { BinderSlot } from '@/services/binders';
@@ -119,6 +119,7 @@ function SettingRow({ icon, label, value, toggle, danger, onPress }: SettingRowP
 
 export default function ProfileScreen() {
   const { user } = useUser();
+  const { signOut } = useClerk();
   const { loading, stats } = useCollectionStats();
   const email = user?.primaryEmailAddress?.emailAddress ?? '';
   const avatarLetter = email.charAt(0).toUpperCase();
@@ -260,7 +261,7 @@ export default function ProfileScreen() {
         <SettingRow icon="diamond-outline"            label="Assinar Bindex Pro"  value="Em breve" />
         <SettingRow icon="help-circle-outline"        label="Ajuda & Suporte" />
         <SettingRow icon="information-circle-outline" label="Sobre o app"          value="v1.0.0" />
-        <SettingRow icon="log-out-outline"            label="Sair" danger />
+        <SettingRow icon="log-out-outline"            label="Sair" danger onPress={() => signOut()} />
       </View>
 
       <View style={{ height: 40 }} />

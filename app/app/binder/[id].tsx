@@ -158,7 +158,7 @@ export default function BinderDetailScreen() {
       const res = await cardsService.list({
         name:  searchQuery.trim() || undefined,
         setId: selectedSet?._id,
-        limit: 60,
+        limit: 250,
       });
       setSearchResults(res.data);
     } finally {

@@ -8,6 +8,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Colors } from '../../constants/colors';
 import { useBinders } from '../../hooks/useBinders';
+import { useCollection } from '../../hooks/useCollection';
 import { cardsService } from '../../services/cards';
 import { setsService } from '../../services/sets';
 import type { Card } from '../../services/cards';
@@ -53,7 +54,7 @@ export default function CollectionScreen() {
     if (!looseQuery.trim() && !looseSelectedSet) return;
     setLooseSearching(true);
     try {
-      const res = await cardsService.list({ name: looseQuery.trim() || undefined, setId: looseSelectedSet?._id, limit: 60 });
+      const res = await cardsService.list({ name: looseQuery.trim() || undefined, setId: looseSelectedSet?._id, limit: 250 });
       setLooseResults(res.data);
     } finally { setLooseSearching(false); }
   };
@@ -83,7 +84,7 @@ export default function CollectionScreen() {
 
   return (
     <View style={styles.container}>
-    <ScrollView contentContainerStyle={styles.content}>
+    <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
       {/* Resumo geral */}
       <View style={styles.summary}>
         <View style={styles.summaryItem}>

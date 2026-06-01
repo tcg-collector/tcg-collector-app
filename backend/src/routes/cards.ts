@@ -7,7 +7,7 @@ const router = Router();
 // Query params: name, setId, page, limit
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { page = 1, limit = 40, setId, name } = req.query;
+    const { page = 1, limit = 250, setId, name } = req.query;
     const filter: Record<string, unknown> = {};
 
     if (setId) filter['set.id'] = setId;
