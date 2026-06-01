@@ -57,5 +57,11 @@ export function useBinder(id: string) {
     setBinder(res.data);
   }, [id]);
 
-  return { binder, loading, refetch: fetch, setSlot };
+  const addPage = useCallback(async () => {
+    const res = await binderService.addPage(id);
+    setBinder(res.data);
+    return res.data;
+  }, [id]);
+
+  return { binder, loading, refetch: fetch, setSlot, addPage };
 }

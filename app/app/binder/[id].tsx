@@ -6,6 +6,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useState, useRef } from 'react';
+import { useWindowDimensions } from 'react-native';
 import { Colors } from '../../constants/colors';
 import { useBinder } from '../../hooks/useBinders';
 import { useExchangeRate } from '../../hooks/useExchangeRate';
@@ -81,7 +82,11 @@ type AddMode = 'search' | 'scan';
 export default function BinderDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { binder, loading, setSlot } = useBinder(id);
+  const { binder, loading, setSlot, addPage } = useBinder(id);
+  const { width: screenWidth } = useWindowDimensions();
+  const [currentPage, setCurrentPage] = useState(0);
+  const [addingPage, setAddingPage] = useState(false);
+  const pageScrollRef = useRef<ScrollView>(null);
   const { rate } = useExchangeRate();
 
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
@@ -285,45 +290,114 @@ export default function BinderDetailScreen() {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.gridContainer}>
-        <View style={[styles.grid, { gap: 8 }]}>
-          {binder.slots.map((slot, idx) => {
-            const card = slot.card as unknown as Card | null;
-            const base = card ? getBasePrice(card) : null;
-            const mult = CONDITION_MULTIPLIERS[slot.condition as CardCondition] ?? 1;
-            const priceBRL = base && rate ? formatBRL(base * mult * rate) : null;
-            const pos = slot.position ?? idx;
-            return (
-              <TouchableOpacity
-                key={`slot-${pos}`}
-                style={[styles.slot, { width: `${100 / cfg.cols - 2}%` as any }]}
-                onPress={() => openAddModal(pos)}
-                onLongPress={() => {
-                  if (slot.cardId) {
-                    showAlert('Remover carta', `Remover "${card?.name ?? 'carta'}" deste slot?`, [
-                      { text: 'Cancelar', style: 'cancel' },
-                      { text: 'Remover', style: 'destructive', onPress: () => setSlot(pos, { cardId: null }) },
-                    ]);
-                  }
-                }}
-              >
-                {card?.images?.small ? (
-                  <>
-                    <Image source={{ uri: card.images.small }} style={styles.slotImg} resizeMode="contain" />
-                    {priceBRL && <Text style={styles.slotPrice}>{priceBRL}</Text>}
-                    <View style={styles.condTag}><Text style={styles.condText}>{slot.condition}</Text></View>
-                  </>
-                ) : (
-                  <View style={styles.slotEmpty}>
-                    <Ionicons name="add" size={22} color={Colors.ash} />
-                    <Text style={styles.slotNum}>{pos + 1}</Text>
+      {/* Grid paginado com swipe horizontal */}
+      {(() => {
+        const slotsPerPage = cfg.cols * cfg.rows;
+        const pages: typeof binder.slots[] = [];
+        for (let i = 0; i < binder.slots.length; i += slotsPerPage) {
+          pages.push(binder.slots.slice(i, i + slotsPerPage));
+        }
+        const totalPages = pages.length;
+
+        return (
+          <View style={{ flex: 1 }}>
+            {/* Indicador de página */}
+            {totalPages > 1 && (
+              <View style={styles.pageIndicator}>
+                {pages.map((_, i) => (
+                  <View key={i} style={[styles.pageDot, i === currentPage && styles.pageDotActive]} />
+                ))}
+                <Text style={styles.pageLabel}>{currentPage + 1} / {totalPages}</Text>
+              </View>
+            )}
+
+            {/* Páginas com swipe */}
+            <ScrollView
+              ref={pageScrollRef}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              style={{ flex: 1 }}
+              onMomentumScrollEnd={(e) => {
+                const page = Math.round(e.nativeEvent.contentOffset.x / screenWidth);
+                setCurrentPage(page);
+              }}
+            >
+              {pages.map((pageSlots, pageIndex) => (
+                <View key={pageIndex} style={[styles.gridContainer, { width: screenWidth }]}>
+                  <View style={[styles.grid, { gap: 8 }]}>
+                    {pageSlots.map((slot, idx) => {
+                      const card = slot.card as unknown as Card | null;
+                      const base = card ? getBasePrice(card) : null;
+                      const mult = CONDITION_MULTIPLIERS[slot.condition as CardCondition] ?? 1;
+                      const priceBRL = base && rate ? formatBRL(base * mult * rate) : null;
+                      const pos = slot.position ?? (pageIndex * slotsPerPage + idx);
+                      return (
+                        <TouchableOpacity
+                          key={`slot-${pos}`}
+                          style={[styles.slot, { width: `${100 / cfg.cols - 2}%` as any }]}
+                          onPress={() => openAddModal(pos)}
+                          onLongPress={() => {
+                            if (slot.cardId) {
+                              showAlert('Remover carta', `Remover "${card?.name ?? 'carta'}" deste slot?`, [
+                                { text: 'Cancelar', style: 'cancel' },
+                                { text: 'Remover', style: 'destructive', onPress: () => setSlot(pos, { cardId: null }) },
+                              ]);
+                            }
+                          }}
+                        >
+                          {card?.images?.small ? (
+                            <>
+                              <Image source={{ uri: card.images.small }} style={styles.slotImg} resizeMode="contain" />
+                              {priceBRL && <Text style={styles.slotPrice}>{priceBRL}</Text>}
+                              <View style={styles.condTag}><Text style={styles.condText}>{slot.condition}</Text></View>
+                            </>
+                          ) : (
+                            <View style={styles.slotEmpty}>
+                              <Ionicons name="add" size={22} color={Colors.ash} />
+                              <Text style={styles.slotNum}>{pos + 1}</Text>
+                            </View>
+                          )}
+                        </TouchableOpacity>
+                      );
+                    })}
                   </View>
-                )}
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </ScrollView>
+                </View>
+              ))}
+
+              {/* Última "página": botão de adicionar nova página */}
+              <View style={[styles.gridContainer, { width: screenWidth, alignItems: 'center', justifyContent: 'center' }]}>
+                <TouchableOpacity
+                  style={styles.addPageBtn}
+                  onPress={async () => {
+                    if (addingPage) return;
+                    setAddingPage(true);
+                    try {
+                      const updated = await addPage();
+                      const newPageIndex = (updated.pageCount ?? 1) - 1;
+                      setTimeout(() => {
+                        pageScrollRef.current?.scrollTo({ x: newPageIndex * screenWidth, animated: true });
+                        setCurrentPage(newPageIndex);
+                      }, 100);
+                    } catch {
+                      showAlert('Erro', 'Não foi possível adicionar a página.');
+                    } finally {
+                      setAddingPage(false);
+                    }
+                  }}
+                  disabled={addingPage}
+                >
+                  {addingPage
+                    ? <ActivityIndicator color={Colors.void} />
+                    : <Ionicons name="add" size={36} color={Colors.void} />
+                  }
+                  <Text style={styles.addPageTxt}>{addingPage ? 'Adicionando...' : 'Nova página'}</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          </View>
+        );
+      })()}
 
       <Modal visible={selectedSlot !== null} animationType="slide" presentationStyle="pageSheet" onRequestClose={closeModal}>
         <View style={styles.modal}>
@@ -680,6 +754,12 @@ const styles = StyleSheet.create({
   backBtn:             { padding: 4 },
   binderName:          { fontSize: 18, fontWeight: '700', color: Colors.snow },
   binderMeta:          { fontSize: 13, color: Colors.ash, marginTop: 2 },
+  pageIndicator:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 8 },
+  pageDot:             { width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.border },
+  pageDotActive:       { backgroundColor: Colors.gold, width: 16 },
+  pageLabel:           { fontSize: 11, color: Colors.ash, marginLeft: 4 },
+  addPageBtn:          { alignItems: 'center', justifyContent: 'center', gap: 12, backgroundColor: Colors.surface, borderRadius: 20, paddingHorizontal: 40, paddingVertical: 28, borderWidth: 2, borderColor: Colors.gold + '55', borderStyle: 'dashed' },
+  addPageTxt:          { fontSize: 15, fontWeight: '700', color: Colors.void, backgroundColor: Colors.gold, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 12, overflow: 'hidden' },
   gridContainer:       { padding: 12 },
   grid:                { flexDirection: 'row', flexWrap: 'wrap' },
   slot:                { aspectRatio: 0.72, backgroundColor: Colors.surface, borderRadius: 8, overflow: 'hidden', position: 'relative', marginBottom: 8 },

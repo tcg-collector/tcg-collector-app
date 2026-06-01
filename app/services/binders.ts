@@ -23,6 +23,7 @@ export interface Binder {
   name: string;
   coverPhotoUrl?: string;
   gridConfig: GridConfig;
+  pageCount: number;
   slots: BinderSlot[];
   createdAt: string;
 }

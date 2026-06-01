@@ -17,6 +17,7 @@ export interface IBinder {
   name: string;
   coverPhotoUrl?: string;
   gridConfig: GridConfig;
+  pageCount: number;
   slots: IBinderSlot[];
   createdAt: Date;
   updatedAt: Date;
@@ -44,13 +45,14 @@ const BinderSchema = new Schema<IBinder>(
     name:          { type: String, required: true, trim: true },
     coverPhotoUrl: { type: String },
     gridConfig:    { type: String, enum: ['2x2', '3x3', '3x4', '4x4'], default: '3x3' },
+    pageCount:     { type: Number, default: 1, min: 1 },
     slots:         { type: [SlotSchema], default: [] },
   },
   { timestamps: true }
 );
 
 BinderSchema.pre('save', function (next) {
-  const needed = totalSlots(this.gridConfig);
+  const needed = totalSlots(this.gridConfig) * (this.pageCount ?? 1);
   const existing = new Set(this.slots.map(s => s.position));
   for (let i = 0; i < needed; i++) {
     if (!existing.has(i)) {

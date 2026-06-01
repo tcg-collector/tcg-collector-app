@@ -73,7 +73,7 @@ export default function CollectionScreen() {
   const { rate } = useExchangeRate();
 
   const looseOnly = items.filter(_i => true); // avulso = tudo sem binder por enquanto
-  const totalBRL = rate ? totalValueUSD * rate : 0;
+  const totalBRL = rate ? totalAllValueUSD * rate : 0;
 
   const handleDeleteBinder = (id: string, name: string) => {
     Alert.alert('Excluir binder', `Excluir "${name}"? As cartas não serão deletadas.`, [
@@ -93,7 +93,7 @@ export default function CollectionScreen() {
         </View>
         <View style={styles.divider} />
         <View style={styles.summaryItem}>
-          <Text style={styles.summaryValue}>{totalCards}</Text>
+          <Text style={styles.summaryValue}>{totalAllCards}</Text>
           <Text style={styles.summaryLabel}>Cartas</Text>
         </View>
         <View style={styles.divider} />

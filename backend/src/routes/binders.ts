@@ -89,6 +89,20 @@ router.patch('/:id/slots/:position', async (req: Request, res: Response) => {
   }
 });
 
+// POST /api/binders/:id/pages — adiciona uma nova página ao binder
+router.post('/:id/pages', async (req: Request, res: Response) => {
+  try {
+    const binder = await Binder.findOne({ _id: req.params.id, userId: req.userId });
+    if (!binder) { res.status(404).json({ error: 'Binder não encontrado' }); return; }
+    binder.pageCount = (binder.pageCount ?? 1) + 1;
+    await binder.save(); // pre-save cria os novos slots automaticamente
+    res.json({ data: await populateBinder(binder) });
+  } catch (err) {
+    console.error('❌ Erro ao adicionar página:', err);
+    res.status(500).json({ error: 'Erro ao adicionar página' });
+  }
+});
+
 // DELETE /api/binders/:id
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
