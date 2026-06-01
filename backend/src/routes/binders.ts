@@ -76,8 +76,15 @@ router.patch('/:id/slots/:position', async (req: Request, res: Response) => {
     if (quantity)             slot.quantity = quantity;
     if (language)             slot.language = language;
     await binder.save();
-    res.json({ data: await populateBinder(binder) });
-  } catch {
+    const populated = await populateBinder(binder);
+    // Log se carta não foi encontrada no banco após salvar
+    const savedSlot = populated.slots.find((s: any) => s.position === pos);
+    if (cardId && savedSlot && !savedSlot.card) {
+      console.warn(`⚠️  cardId "${cardId}" salvo no slot ${pos} mas não encontrado na coleção Card`);
+    }
+    res.json({ data: populated });
+  } catch (err) {
+    console.error('❌ Erro ao atualizar slot:', err);
     res.status(500).json({ error: 'Erro ao atualizar slot' });
   }
 });

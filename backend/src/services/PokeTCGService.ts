@@ -79,7 +79,7 @@ export async function syncAllCards(startPage = 1): Promise<number> {
       try {
         response = await client.get<{ data: PokeTCGCard[]; totalCount: number }>(
           '/cards',
-          { params: { pageSize, page, orderBy: 'set.releaseDate' } }
+          { params: { pageSize, page, orderBy: '-set.releaseDate' } }
         );
         break; // sucesso
       } catch (e) {
@@ -133,7 +133,7 @@ export async function syncPricesOnly(): Promise<number> {
     try {
       response = await client.get<{ data: PokeTCGCard[]; totalCount: number }>(
         '/cards',
-        { params: { pageSize, page, orderBy: 'set.releaseDate' } }
+        { params: { pageSize, page, orderBy: '-set.releaseDate' } }
       );
     } catch (e) {
       console.error(`❌ Erro na página ${page}:`, e);
