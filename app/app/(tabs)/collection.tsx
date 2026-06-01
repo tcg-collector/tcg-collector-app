@@ -82,7 +82,8 @@ export default function CollectionScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.content}>
       {/* Resumo geral */}
       <View style={styles.summary}>
         <View style={styles.summaryItem}>
@@ -308,7 +309,7 @@ export default function CollectionScreen() {
           </Modal>
         </View>
       </Modal>
-    </ScrollView>
+    </View>
   );
 }
 
