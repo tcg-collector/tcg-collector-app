@@ -14,11 +14,13 @@ import { setsService } from '../../services/sets';
 import type { Card } from '../../services/cards';
 import type { SetSummary } from '../../services/sets';
 import { useExchangeRate } from '../../hooks/useExchangeRate';
+import { useCollectionMarket } from '../../hooks/useCollectionMarket';
 import { GRID_CONFIGS } from '../../services/binders';
 import { SearchBar } from '../../components/SearchBar';
 import { ConditionChips } from '../../components/ConditionChips';
 import { SortPicker } from '../../components/SortPicker';
 import { BinderListItem } from '../../components/BinderListItem';
+import { MarketCardItem } from '../../components/MarketCardItem';
 
 type ConditionFilter = 'ALL' | 'NM' | 'LP' | 'MP' | 'HP' | 'DMG';
 type SortMode = 'ADDED_DESC' | 'VALUE_DESC' | 'VALUE_ASC' | 'NAME_ASC';
@@ -103,6 +105,8 @@ export default function CollectionScreen() {
   };
 
   const { rate } = useExchangeRate();
+  const { summary, gainers, topValue, rate: marketRate, loading: loadingMarket } = useCollectionMarket({ skip: items.length === 0 });
+  const displayRate = rate ?? marketRate;
 
   // Itens filtrados e ordenados (avulso)
   const filteredItems = useMemo(() => {
@@ -165,6 +169,96 @@ export default function CollectionScreen() {
   return (
     <View style={styles.container}>
     <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
+      {/* Painel de inteligência de valor — visível apenas com ≥1 carta */}
+      {items.length > 0 && (
+        <>
+          {loadingMarket ? (
+            <ActivityIndicator color={Colors.gold} style={{ marginTop: 16, marginBottom: 4 }} />
+          ) : (
+            <>
+              {/* Resumo de valor + delta */}
+              {summary && (
+                <View style={styles.marketSummary}>
+                  <View>
+                    <Text style={styles.marketSummaryLabel}>Valor da coleção</Text>
+                    <Text style={styles.marketSummaryValue}>
+                      {displayRate ? formatBRL(summary.totalValueUSD * displayRate) : '—'}
+                    </Text>
+                  </View>
+                  {summary.deltaUSD !== 0 && displayRate ? (
+                    <View style={styles.marketDeltaBox}>
+                      <Text style={[
+                        styles.marketDelta,
+                        { color: summary.deltaUSD > 0 ? Colors.mint : Colors.crimson },
+                      ]}>
+                        {summary.deltaUSD > 0 ? '+' : ''}{formatBRL(summary.deltaUSD * displayRate)}
+                      </Text>
+                      <Text style={[
+                        styles.marketDeltaPct,
+                        { color: summary.deltaUSD > 0 ? Colors.mint : Colors.crimson },
+                      ]}>
+                        {summary.deltaPct > 0 ? '+' : ''}{summary.deltaPct.toFixed(1)}% (7d)
+                      </Text>
+                    </View>
+                  ) : (
+                    <Text style={styles.marketDeltaEmpty}>— sem histórico ainda</Text>
+                  )}
+                </View>
+              )}
+
+              {/* Carrossel: Maiores Valorizações */}
+              {gainers.length > 0 && (
+                <>
+                  <View style={styles.marketSectionHeader}>
+                    <Text style={styles.marketSectionTitle}>Maiores Valorizações</Text>
+                    <Text style={styles.marketSectionHint}>sua coleção · 7d</Text>
+                  </View>
+                  <FlatList
+                    horizontal
+                    data={gainers}
+                    keyExtractor={item => item.card._id}
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.marketCarousel}
+                    renderItem={({ item }) => (
+                      <MarketCardItem
+                        card={item.card}
+                        priceBRL={displayRate ? formatBRL(item.marketNow * displayRate) : '—'}
+                        badge={`+${item.deltaPct.toFixed(0)}%`}
+                        onPress={() => router.push(`/card/${item.card._id}`)}
+                      />
+                    )}
+                  />
+                </>
+              )}
+
+              {/* Carrossel: Mais Valiosas */}
+              {topValue.length > 0 && (
+                <>
+                  <View style={styles.marketSectionHeader}>
+                    <Text style={styles.marketSectionTitle}>Mais Valiosas</Text>
+                    <Text style={styles.marketSectionHint}>sua coleção</Text>
+                  </View>
+                  <FlatList
+                    horizontal
+                    data={topValue}
+                    keyExtractor={item => item.card._id}
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.marketCarousel}
+                    renderItem={({ item }) => (
+                      <MarketCardItem
+                        card={item.card}
+                        priceBRL={displayRate ? formatBRL(item.market * displayRate) : '—'}
+                        onPress={() => router.push(`/card/${item.card._id}`)}
+                      />
+                    )}
+                  />
+                </>
+              )}
+            </>
+          )}
+        </>
+      )}
+
       {/* Resumo geral */}
       <View style={styles.summary}>
         <View style={styles.summaryItem}>
@@ -559,4 +653,16 @@ const styles = StyleSheet.create({
   looseCardName:      { fontSize: 11, color: Colors.snow, textAlign: 'center' },
   condBadge:          { backgroundColor: Colors.surface2, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2, marginTop: 4 },
   condText:           { fontSize: 10, fontWeight: '700', color: Colors.ash },
+  // Painel de inteligência
+  marketSummary:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: Colors.surface, marginHorizontal: 16, marginTop: 16, borderRadius: 14, padding: 16 },
+  marketSummaryLabel: { fontSize: 11, color: Colors.ash, marginBottom: 2 },
+  marketSummaryValue: { fontSize: 20, fontWeight: '700', color: Colors.snow },
+  marketDeltaBox:     { alignItems: 'flex-end', gap: 2 },
+  marketDelta:        { fontSize: 14, fontWeight: '700' },
+  marketDeltaPct:     { fontSize: 12, fontWeight: '600' },
+  marketDeltaEmpty:   { fontSize: 12, color: Colors.ash },
+  marketSectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, marginTop: 20, marginBottom: 12 },
+  marketSectionTitle: { fontSize: 16, fontWeight: '700', color: Colors.snow },
+  marketSectionHint:  { fontSize: 12, color: Colors.ash },
+  marketCarousel:     { paddingHorizontal: 16, gap: 12 },
 });
