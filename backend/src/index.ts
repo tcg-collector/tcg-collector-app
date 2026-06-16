@@ -12,6 +12,10 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const extraOrigins = process.env.CORS_EXTRA_ORIGINS
+  ? process.env.CORS_EXTRA_ORIGINS.split(',').map(o => o.trim()).filter(Boolean)
+  : [];
+
 const corsOptions = {
   origin: [
     'https://tcgbindex.app',
@@ -19,8 +23,7 @@ const corsOptions = {
     'https://tcg-collector-app.vercel.app',
     'http://localhost:8081',
     'http://localhost:8083',
-    'http://192.168.15.31:8081',
-    'http://192.168.15.31:8083',
+    ...extraOrigins,
   ],
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],

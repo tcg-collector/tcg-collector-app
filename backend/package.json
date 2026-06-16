@@ -12,7 +12,9 @@
     "lint:fix": "eslint src --ext .ts --fix",
     "test": "jest",
     "test:coverage": "jest --coverage",
-    "seed": "ts-node src/scripts/seed.ts"
+    "seed": "ts-node src/scripts/seed.ts",
+    "test:unit": "jest --testPathPattern=(?<!integration)\\.test\\.ts$",
+    "test:integration": "jest --testPathPattern=\\.integration\\.test\\.ts$"
   },
   "dependencies": {
     "@clerk/backend": "^1.27.0",
