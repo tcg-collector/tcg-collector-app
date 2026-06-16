@@ -1,12 +1,15 @@
 import { Router, Request, Response } from 'express';
 import { Card } from '../models/Card';
 import { requireAuth } from '../middleware/auth';
+import { rateLimiter } from '../middleware/rateLimiter';
 import axios from 'axios';
 
 const router = Router();
 
 // Todas as rotas de scan exigem autenticação
 router.use(requireAuth);
+// Rate limit: 10 scans/minuto por usuário (protege custo da Anthropic API)
+router.use(rateLimiter({ maxRequests: 10, windowMs: 60_000, message: 'Limite de 10 scans por minuto atingido.' }));
 
 const ANTHROPIC_VISION_PROMPT = `Você é um especialista em cartas Pokémon TCG. Analise esta imagem com MUITA atenção.
 
