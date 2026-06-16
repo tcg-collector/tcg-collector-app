@@ -105,8 +105,6 @@ export default function CollectionScreen() {
   };
 
   const { rate } = useExchangeRate();
-  const { summary, gainers, topValue, rate: marketRate, loading: loadingMarket } = useCollectionMarket({ skip: items.length === 0 });
-  const displayRate = rate ?? marketRate;
 
   // Itens filtrados e ordenados (avulso)
   const filteredItems = useMemo(() => {
@@ -159,6 +157,9 @@ export default function CollectionScreen() {
   const totalAllValueUSD = totalValueUSD + binderValueUSD;
   const totalBRL = rate ? totalAllValueUSD * rate : 0;
 
+  const { summary, gainers, topValue, rate: marketRate, loading: loadingMarket } = useCollectionMarket({ skip: totalAllCards === 0 });
+  const displayRate = rate ?? marketRate;
+
   const handleDeleteBinder = (id: string, name: string) => {
     Alert.alert('Excluir binder', `Excluir "${name}"? As cartas não serão deletadas.`, [
       { text: 'Cancelar', style: 'cancel' },
@@ -169,8 +170,8 @@ export default function CollectionScreen() {
   return (
     <View style={styles.container}>
     <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
-      {/* Painel de inteligência de valor — visível apenas com ≥1 carta */}
-      {items.length > 0 && (
+      {/* Painel de inteligência de valor — visível quando há cartas (binders ou avulsas) */}
+      {totalAllCards > 0 && (
         <>
           {loadingMarket ? (
             <ActivityIndicator color={Colors.gold} style={{ marginTop: 16, marginBottom: 4 }} />

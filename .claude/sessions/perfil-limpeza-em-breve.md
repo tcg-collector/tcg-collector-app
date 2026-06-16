@@ -1,7 +1,7 @@
 # Sessão: Perfil — Limpeza Visual e Tags "Em Breve"
 
 **Slug:** perfil-limpeza-em-breve  
-**Status:** executing  
+**Status:** done  
 **Iniciada:** 2026-06-16  
 **Objetivo:** Adicionar badge "Em breve" nos 4 itens sem funcionalidade, remover seção "Notificações" e corrigir stats para incluir cartas avulsas.
 
@@ -16,7 +16,7 @@
 - [ ] Backend implementado (N/A)
 - [x] Frontend implementado
 - [x] Testes passando (typecheck + lint)
-- [ ] /ship executado com sucesso
+- [x] /ship executado com sucesso
 
 ## Contexto para próxima sessão
 - **Único arquivo modificado**: `app/app/(tabs)/profile.tsx`
