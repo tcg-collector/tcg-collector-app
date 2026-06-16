@@ -178,6 +178,90 @@ Identifica uma carta Pokémon por foto usando Claude Vision, avalia a condição
 
 ---
 
+## Collections
+
+> ⚠️ Todas as rotas de collections exigem `Authorization: Bearer <token>`
+
+### `GET /api/collections`
+Lista todas as cartas avulsas salvas pelo usuário autenticado.
+
+### `POST /api/collections`
+Adiciona uma carta à coleção avulsa.
+
+**Body:**
+```json
+{ "cardId": "base1-4", "condition": "NM", "quantity": 1 }
+```
+
+### `DELETE /api/collections/:id`
+Remove uma carta da coleção pelo `_id` da entrada.
+
+### `GET /api/collections/top-gainers`
+Retorna as cartas da coleção do usuário com maior valorização percentual em um período.
+
+| Param | Tipo | Default | Descrição |
+|-------|------|---------|-----------|
+| `days` | 7 \| 30 \| 60 | 7 | Janela de tempo para comparação |
+| `limit` | number | 10 | Máximo de cartas retornadas |
+
+**Resposta:**
+```json
+[{ "card": {...}, "marketNow": 12.5, "marketThen": 8.0, "deltaPct": 56.25, "deltaAbs": 4.5, "condition": "NM" }]
+```
+
+### `GET /api/collections/top-value`
+Retorna as cartas mais valiosas da coleção do usuário, ordenadas por preço de mercado.
+
+| Param | Tipo | Default | Descrição |
+|-------|------|---------|-----------|
+| `limit` | number | 5 | Máximo de cartas retornadas |
+
+### `GET /api/collections/summary`
+Retorna o valor total da coleção e a variação em relação a um período anterior.
+
+| Param | Tipo | Default | Descrição |
+|-------|------|---------|-----------|
+| `days` | 7 \| 30 \| 60 | 7 | Janela de comparação |
+
+**Resposta:**
+```json
+{ "totalValueUSD": 320.5, "deltaUSD": 18.2, "deltaPct": 6.02, "days": 7 }
+```
+
+---
+
+## Prices
+
+> ⚠️ Todas as rotas de prices exigem `Authorization: Bearer <token>`
+
+### `GET /api/prices/exchange`
+Retorna a cotação USD→BRL atual. Cache de 1h. Fallback R$ 5,72.
+
+### `GET /api/prices/:cardId`
+Retorna o preço de mercado (TCGPlayer market) de uma carta específica.
+
+### `GET /api/prices/top-gainers`
+Retorna as cartas do catálogo global com maior valorização percentual.
+
+| Param | Tipo | Default | Descrição |
+|-------|------|---------|-----------|
+| `days` | 7 \| 30 \| 60 | 7 | Janela de tempo |
+| `limit` | number | 10 | Máximo de resultados |
+
+**Resposta:**
+```json
+[{ "card": {...}, "marketNow": 45.0, "marketThen": 20.0, "deltaPct": 125.0, "deltaAbs": 25.0 }]
+```
+
+### `GET /api/prices/top-value`
+Retorna as cartas mais valiosas do catálogo global.
+
+| Param | Tipo | Default | Descrição |
+|-------|------|---------|-----------|
+| `limit` | number | 10 | Máximo de resultados |
+
+---
+
 ## Exchange Rate
 
 ### Taxa USD→BRL
