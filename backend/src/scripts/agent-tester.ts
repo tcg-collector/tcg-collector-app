@@ -31,6 +31,11 @@ const KNOWN_ROUTES: Array<{ method: string; path: string; description: string; c
   { method: 'PATCH', path: '/api/binders/:id/slots/:pos',  description: 'Colocar carta em slot',           covered: true },
   { method: 'POST',  path: '/api/binders/:id/pages',       description: 'Adicionar página ao binder',      covered: true },
   { method: 'POST',  path: '/api/scan',                    description: 'Scan IA por foto',                covered: true },
+  { method: 'GET',   path: '/api/prices/top-gainers',      description: 'Top valorizações globais',         covered: false },
+  { method: 'GET',   path: '/api/prices/top-value',        description: 'Top cartas mais valiosas globais', covered: false },
+  { method: 'GET',   path: '/api/collections/top-gainers', description: 'Top valorizações da coleção',      covered: false },
+  { method: 'GET',   path: '/api/collections/top-value',   description: 'Top cartas valiosas da coleção',   covered: false },
+  { method: 'GET',   path: '/api/collections/summary',     description: 'Resumo de valor da coleção',       covered: false },
 ];
 
 // ─── Gerar token fresco via Clerk ─────────────────────────────────────────────

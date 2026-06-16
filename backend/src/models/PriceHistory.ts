@@ -3,25 +3,20 @@ import { Schema, model, Types } from 'mongoose';
 export interface IPriceHistory {
   _id: Types.ObjectId;
   cardId: string;
-  timestamp: Date;
-  priceUSD: number;
-  priceBRL: number;
-  exchangeRate: number;
-  condition: 'NM' | 'LP' | 'MP' | 'HP' | 'DMG';
-  source: string;
+  date: Date;
+  market: number;
 }
 
-const PriceHistorySchema = new Schema<IPriceHistory>(
-  {
-    cardId:       { type: String, ref: 'Card', required: true, index: true },
-    timestamp:    { type: Date, default: Date.now },
-    priceUSD:     { type: Number, required: true },
-    priceBRL:     { type: Number, required: true },
-    exchangeRate: { type: Number, required: true },
-    condition:    { type: String, enum: ['NM', 'LP', 'MP', 'HP', 'DMG'], default: 'NM' },
-    source:       { type: String, default: 'pokemontcg.io' },
-  },
-  { timeseries: { timeField: 'timestamp', metaField: 'cardId', granularity: 'hours' } }
-);
+const PriceHistorySchema = new Schema<IPriceHistory>({
+  cardId: { type: String, ref: 'Card', required: true },
+  date:   { type: Date, required: true },
+  market: { type: Number, required: true },
+});
+
+// Um snapshot por carta por dia (idempotente via upsert)
+PriceHistorySchema.index({ cardId: 1, date: -1 }, { unique: true });
+
+// TTL: MongoDB remove automaticamente snapshots com mais de 60 dias
+PriceHistorySchema.index({ date: 1 }, { expireAfterSeconds: 60 * 24 * 60 * 60 });
 
 export const PriceHistory = model<IPriceHistory>('PriceHistory', PriceHistorySchema);
