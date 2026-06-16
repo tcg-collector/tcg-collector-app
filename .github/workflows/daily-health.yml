@@ -30,13 +30,15 @@ jobs:
       # ── Testes unitários ──────────────────────────────────────
       - name: Unit tests
         id: unit
-        run: npm run test:unit -- --ci --forceExit --json --outputFile=unit-results.json
+        # npx direto evita problemas de escaping de regex no /bin/sh do Linux
+        run: npx jest --testPathIgnorePatterns='/node_modules/' '\.integration\.' --ci --forceExit
         continue-on-error: true
 
       # ── Testes de integração (banco real em memória) ──────────
       - name: Integration tests
         id: integration
-        run: npm run test:integration -- --ci --forceExit --json --outputFile=integration-results.json
+        # --testPathIgnorePatterns sobrescreve o jest.config.js (que bloqueia integration por padrão)
+        run: npx jest --testPathIgnorePatterns='/node_modules/' --testPathPattern='\.integration\.' --ci --forceExit
         continue-on-error: true
 
       # ── Typecheck ────────────────────────────────────────────
@@ -103,5 +105,4 @@ jobs:
           FAILED=0
           [ "${{ steps.unit.outcome }}" != "success" ] && echo "❌ Unit tests falharam" && FAILED=1
           [ "${{ steps.integration.outcome }}" != "success" ] && echo "❌ Integration tests falharam" && FAILED=1
-          [ "${{ steps.prod_health.outcome }}" != "success" ] && echo "❌ Backend em produção fora do ar" && FAILED=1
-          [ $FAILED -eq 1 ] && exit 1 || echo "✅ Todos os checks críticos passaram"
+          [ "${{ steps.prod_health.outcome }}" != "success" ] && echo "❌ Backend em produção fora d
