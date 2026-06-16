@@ -312,4 +312,11 @@ function buildReport(): string {
       appendFileSync(summaryFile, report + '\n');
     }
 
-    const failed = 
+    const failed = results.filter(r => r.status === 'fail').length;
+    if (failed > 0) { console.error(`\n❌ ${failed} rota(s) falharam.`); process.exit(1); }
+    else { console.log(`\n✅ Todas as rotas testadas passaram.`); }
+  } catch (err) {
+    console.error('Erro fatal no Agent Tester:', err);
+    process.exit(1);
+  }
+})();
