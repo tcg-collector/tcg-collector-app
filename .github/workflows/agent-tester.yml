@@ -2,7 +2,6 @@ name: Agent Tester (E2E Sintético)
 
 on:
   schedule:
-    # Roda todos os dias às 09:15 BRT (12:15 UTC) — depois do daily health
     - cron: '15 12 * * *'
   workflow_dispatch:
 
@@ -29,10 +28,11 @@ jobs:
       - name: Run Agent Tester
         env:
           AGENT_TESTER_BASE_URL: https://tcg-collector-app-production.up.railway.app
-          CLERK_TEST_TOKEN: ${{ secrets.CLERK_TEST_TOKEN }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_TEST_SESSION_ID: ${{ secrets.CLERK_TEST_SESSION_ID }}
         run: npx ts-node --project tsconfig.json src/scripts/agent-tester.ts
-        continue-on-error: true
         id: agent
+        continue-on-error: true
 
       - name: Fail if any route failed
         if: steps.agent.outcome == 'failure'
