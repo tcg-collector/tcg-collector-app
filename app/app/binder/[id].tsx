@@ -15,6 +15,9 @@ import { setsService } from '../../services/sets';
 import type { SetSummary } from '../../services/sets';
 import { scanService, CardCondition, GRID_CONFIGS } from '../../services/binders';
 import type { Card } from '../../services/cards';
+import { ConditionPicker } from '../../components/ConditionPicker';
+import { SearchBar } from '../../components/SearchBar';
+import { ConditionChips } from '../../components/ConditionChips';
 
 // Camera só importa no mobile — evita crash no web
 let CameraView: any = null;
@@ -48,23 +51,11 @@ function showAlert(
   Alert.alert(title, message, buttons);
 }
 
-// Multiplicadores de preço por condição (padrão de mercado TCG)
 const CONDITION_MULTIPLIERS: Record<CardCondition, number> = {
-  NM:  1.00,
-  LP:  0.80,
-  MP:  0.60,
-  HP:  0.40,
-  DMG: 0.20,
+  NM: 1.00, LP: 0.80, MP: 0.60, HP: 0.40, DMG: 0.20,
 };
 
-// Rótulos descritivos por condição
-const CONDITION_LABELS: Record<CardCondition, string> = {
-  NM:  'Near Mint',
-  LP:  'Lightly Played',
-  MP:  'Moderately Played',
-  HP:  'Heavily Played',
-  DMG: 'Damaged',
-};
+type ConditionFilter = 'ALL' | CardCondition;
 
 function getBasePrice(card: Card): number | null {
   return card.prices?.holofoil?.market ?? card.prices?.normal?.market ?? null;
@@ -88,6 +79,10 @@ export default function BinderDetailScreen() {
   const [addingPage, setAddingPage] = useState(false);
   const pageScrollRef = useRef<ScrollView>(null);
   const { rate } = useExchangeRate();
+
+  // Filtros do grid
+  const [slotSearch, setSlotSearch] = useState('');
+  const [slotCondition, setSlotCondition] = useState<ConditionFilter>('ALL');
 
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
   const [addMode, setAddMode] = useState<AddMode>('search');
@@ -239,44 +234,17 @@ export default function BinderDetailScreen() {
     setScanCandidates(res.data.candidates as unknown as Card[]);
   };
 
-  // Componente: seletor de condição com preços por grade
-  const ConditionPicker = ({
-    card, selected, onSelect, hint,
-  }: {
-    card: Card; selected: CardCondition; onSelect: (c: CardCondition) => void; hint?: string;
-  }) => {
-    const hasPrice = getBasePrice(card) !== null;
-    return (
-      <View style={{ gap: 8 }}>
-        <Text style={styles.condLabel}>Condição</Text>
-        {hint ? <Text style={styles.condPickerHint}>{hint}</Text> : null}
-        {(['NM', 'LP', 'MP', 'HP', 'DMG'] as CardCondition[]).map(c => {
-          const price = priceForCondition(card, c, rate);
-          const isSelected = selected === c;
-          return (
-            <TouchableOpacity
-              key={c}
-              style={[styles.condRow, isSelected && styles.condRowActive]}
-              onPress={() => onSelect(c)}
-            >
-              <View style={styles.condRowLeft}>
-                <Text style={[styles.condGrade, isSelected && styles.condGradeActive]}>{c}</Text>
-                <Text style={[styles.condName, isSelected && styles.condNameActive]}>{CONDITION_LABELS[c]}</Text>
-              </View>
-              {hasPrice ? (
-                <Text style={[styles.condPrice, isSelected && styles.condPriceActive]}>{price}</Text>
-              ) : (
-                <Text style={styles.condNoPrice}>s/ preço</Text>
-              )}
-            </TouchableOpacity>
-          );
-        })}
-        {!hasPrice && (
-          <Text style={styles.noPriceNote}>Esta carta não tem dados de preço no TCGPlayer</Text>
-        )}
-      </View>
-    );
+  // Filtra slots dentro das páginas existentes (Opção A: estrutura de páginas não muda)
+  const slotMatchesFilter = (slot: typeof binder.slots[0]): boolean => {
+    // Slots vazios sempre passam — preserva navegação visual do binder
+    if (!slot.cardId || !slot.card) return true;
+    const card = slot.card as unknown as Card;
+    const matchName = !slotSearch.trim() || card.name?.toLowerCase().includes(slotSearch.toLowerCase());
+    const matchCond = slotCondition === 'ALL' || slot.condition === slotCondition;
+    return matchName && matchCond;
   };
+
+  const hasActiveFilter = slotSearch.trim() !== '' || slotCondition !== 'ALL';
 
   return (
     <View style={styles.container}>
@@ -288,6 +256,16 @@ export default function BinderDetailScreen() {
           <Text style={styles.binderName}>{binder.name}</Text>
           <Text style={styles.binderMeta}>{cfg.label} · {formatBRL(totalValue)}</Text>
         </View>
+      </View>
+
+      {/* Filtros do grid */}
+      <View style={styles.filtersRow}>
+        <SearchBar
+          value={slotSearch}
+          onChangeText={setSlotSearch}
+          placeholder="Buscar carta no binder..."
+        />
+        <ConditionChips selected={slotCondition} onSelect={setSlotCondition} />
       </View>
 
       {/* Grid paginado com swipe horizontal */}
@@ -332,12 +310,21 @@ export default function BinderDetailScreen() {
                       const mult = CONDITION_MULTIPLIERS[slot.condition as CardCondition] ?? 1;
                       const priceBRL = base && rate ? formatBRL(base * mult * rate) : null;
                       const pos = slot.position ?? (pageIndex * slotsPerPage + idx);
+
+                      // Filtro dentro da página: slot oculto (dimmed) se não bate com filtro
+                      const visible = !hasActiveFilter || slotMatchesFilter(slot);
+
                       return (
                         <TouchableOpacity
                           key={`slot-${pos}`}
-                          style={[styles.slot, { width: `${100 / cfg.cols - 2}%` as any }]}
-                          onPress={() => openAddModal(pos)}
+                          style={[
+                            styles.slot,
+                            { width: `${100 / cfg.cols - 2}%` as any },
+                            !visible && styles.slotDimmed,
+                          ]}
+                          onPress={() => visible ? openAddModal(pos) : undefined}
                           onLongPress={() => {
+                            if (!visible) return;
                             if (slot.cardId) {
                               showAlert('Remover carta', `Remover "${card?.name ?? 'carta'}" deste slot?`, [
                                 { text: 'Cancelar', style: 'cancel' },
@@ -348,7 +335,11 @@ export default function BinderDetailScreen() {
                         >
                           {card?.images?.small ? (
                             <>
-                              <Image source={{ uri: card.images.small }} style={styles.slotImg} resizeMode="contain" />
+                              <Image
+                                source={{ uri: card.images.small }}
+                                style={styles.slotImg}
+                                resizeMode="contain"
+                              />
                               {priceBRL && <Text style={styles.slotPrice}>{priceBRL}</Text>}
                               <View style={styles.condTag}><Text style={styles.condText}>{slot.condition}</Text></View>
                             </>
@@ -450,7 +441,12 @@ export default function BinderDetailScreen() {
                     </View>
                   ) : null}
 
-                  <ConditionPicker card={pendingCard} selected={pendingCondition} onSelect={setPendingCondition} />
+                  <ConditionPicker
+                    card={pendingCard}
+                    selected={pendingCondition}
+                    onSelect={setPendingCondition}
+                    rate={rate}
+                  />
 
                   <TouchableOpacity
                     style={styles.confirmBtn}
@@ -669,6 +665,7 @@ export default function BinderDetailScreen() {
                             card={pendingCard}
                             selected={editedCondition}
                             onSelect={setEditedCondition}
+                            rate={rate}
                             hint={scanResult.conditionReason}
                           />
 
@@ -754,6 +751,7 @@ const styles = StyleSheet.create({
   backBtn:             { padding: 4 },
   binderName:          { fontSize: 18, fontWeight: '700', color: Colors.snow },
   binderMeta:          { fontSize: 13, color: Colors.ash, marginTop: 2 },
+  filtersRow:          { paddingHorizontal: 16, paddingVertical: 10, gap: 8, borderBottomWidth: 1, borderBottomColor: Colors.border },
   pageIndicator:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 8 },
   pageDot:             { width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.border },
   pageDotActive:       { backgroundColor: Colors.gold, width: 16 },
@@ -763,6 +761,7 @@ const styles = StyleSheet.create({
   gridContainer:       { padding: 12 },
   grid:                { flexDirection: 'row', flexWrap: 'wrap' },
   slot:                { aspectRatio: 0.72, backgroundColor: Colors.surface, borderRadius: 8, overflow: 'hidden', position: 'relative', marginBottom: 8 },
+  slotDimmed:          { opacity: 0.25 },
   slotImg:             { width: '100%', height: '100%' },
   slotEmpty:           { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 4 },
   slotNum:             { fontSize: 10, color: Colors.border },
@@ -803,19 +802,6 @@ const styles = StyleSheet.create({
   priceHighlight:      { backgroundColor: Colors.surface2, borderRadius: 12, padding: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: Colors.gold + '44' },
   priceHighlightLabel: { fontSize: 13, color: Colors.ash },
   priceHighlightValue: { fontSize: 20, fontWeight: '700', color: Colors.gold },
-  condLabel:           { fontSize: 13, fontWeight: '600', color: Colors.snow },
-  condPickerHint:      { fontSize: 12, color: Colors.ash, marginBottom: 4 },
-  condRow:             { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: Colors.surface, borderRadius: 10, padding: 12, borderWidth: 1.5, borderColor: Colors.border },
-  condRowActive:       { borderColor: Colors.gold, backgroundColor: Colors.surface2 },
-  condRowLeft:         { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  condGrade:           { fontSize: 13, fontWeight: '800', color: Colors.ash, width: 34 },
-  condGradeActive:     { color: Colors.gold },
-  condName:            { fontSize: 13, color: Colors.ash },
-  condNameActive:      { color: Colors.snow },
-  condPrice:           { fontSize: 13, fontWeight: '700', color: Colors.ash },
-  condPriceActive:     { color: Colors.mint },
-  condNoPrice:         { fontSize: 12, color: Colors.border },
-  noPriceNote:         { fontSize: 11, color: Colors.ash, textAlign: 'center', fontStyle: 'italic' },
   confirmBtn:          { backgroundColor: Colors.gold, borderRadius: 12, padding: 15, alignItems: 'center' },
   confirmBtnTxt:       { fontSize: 15, fontWeight: '700', color: Colors.void },
   // Câmera mobile
