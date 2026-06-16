@@ -265,6 +265,8 @@ async function runAll(token: string) {
   });
   await checkRoute('Top cartas mais valiosas globais', 'GET', '/api/prices/top-value?limit=5', token, {
     expectedStatus: [200],
+    timeoutMs: 30_000,
+    note: 'Ordena ~12k cartas — pode demorar até 30s',
   });
 
   // Histórico de preços — rotas da coleção do usuário
@@ -342,7 +344,7 @@ function buildReport(): string {
   }
 
   // Seção de cobertura: compara manifesto com rotas efetivamente testadas
-  const testedPaths = new Set(results.map(r => `${r.method}:${r.route}`));
+  const testedPaths = new Set(results.map(r => `${r.method}:${r.route.split('?')[0]}`));
   const uncovered = KNOWN_ROUTES.filter(r => !r.covered);
   const notTested  = KNOWN_ROUTES.filter(r => r.covered && !testedPaths.has(`${r.method}:${r.path}`));
 
