@@ -125,20 +125,33 @@ export async function syncPricesOnly(): Promise<number> {
   let page = 1;
   const pageSize = 250;
   let total = 0;
+  const MAX_RETRIES = 3;
 
   console.log('💰 Iniciando sync de preços...');
 
   while (true) {
     let response;
-    try {
-      response = await client.get<{ data: PokeTCGCard[]; totalCount: number }>(
-        '/cards',
-        { params: { pageSize, page, orderBy: '-set.releaseDate' } }
-      );
-    } catch (e) {
-      console.error(`❌ Erro na página ${page}:`, e);
-      break;
+    let retries = 0;
+    while (retries < MAX_RETRIES) {
+      try {
+        response = await client.get<{ data: PokeTCGCard[]; totalCount: number }>(
+          '/cards',
+          { params: { pageSize, page, orderBy: '-set.releaseDate' } }
+        );
+        break; // sucesso
+      } catch (e) {
+        retries++;
+        if (retries >= MAX_RETRIES) {
+          console.error(`❌ Erro na página ${page} após ${MAX_RETRIES} tentativas:`, (e as Error).message);
+          console.log(`✅ Sync parcial de preços: ${total} cartas atualizadas`);
+          return total;
+        }
+        console.warn(`⚠️  Timeout na página ${page}, tentativa ${retries}/${MAX_RETRIES}. Aguardando 5s...`);
+        await sleep(5000);
+      }
     }
+
+    if (!response) break;
 
     const cards = response.data.data;
     if (!cards.length) break;

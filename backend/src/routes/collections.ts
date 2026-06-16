@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { UserCollection } from '../models/UserCollection';
 import { requireAuth } from '../middleware/auth';
+import { validateCollectionCreate } from '../validation/schemas';
 
 const router = Router();
 
@@ -21,11 +22,20 @@ router.get('/', async (req: Request, res: Response) => {
 
 // POST /api/collections — adiciona carta à coleção do usuário autenticado
 router.post('/', async (req: Request, res: Response) => {
+  const { data, errors } = validateCollectionCreate(req.body);
+  if (errors) {
+    res.status(400).json({ errors });
+    return;
+  }
   try {
-    const item = new UserCollection({ ...req.body, userId: req.userId });
+    const item = new UserCollection({ ...data, userId: req.userId });
     await item.save();
     res.status(201).json({ data: item });
-  } catch {
+  } catch (err: unknown) {
+    if (err instanceof Error && err.name === 'ValidationError') {
+      res.status(400).json({ error: err.message });
+      return;
+    }
     res.status(500).json({ error: 'Erro ao adicionar carta' });
   }
 });

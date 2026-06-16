@@ -1,8 +1,12 @@
 import { Router, Request, Response } from 'express';
 import { Card } from '../models/Card';
+import { requireAuth } from '../middleware/auth';
 import axios from 'axios';
 
 const router = Router();
+
+// Todas as rotas de scan exigem autenticação
+router.use(requireAuth);
 
 const ANTHROPIC_VISION_PROMPT = `Você é um especialista em cartas Pokémon TCG. Analise esta imagem com MUITA atenção.
 

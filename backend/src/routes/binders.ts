@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { Binder, GridConfig } from '../models/Binder';
 import { Card } from '../models/Card';
 import { requireAuth } from '../middleware/auth';
+import { validateBinderCreate, validateSlotUpdate } from '../validation/schemas';
 
 const router = Router();
 
@@ -38,12 +39,10 @@ router.get('/', async (req: Request, res: Response) => {
 
 // POST /api/binders
 router.post('/', async (req: Request, res: Response) => {
+  const { data, errors } = validateBinderCreate(req.body);
+  if (errors) { res.status(400).json({ errors }); return; }
   try {
-    const { name, gridConfig = '3x3', coverPhotoUrl } = req.body as {
-      name: string; gridConfig?: GridConfig; coverPhotoUrl?: string;
-    };
-    if (!name) { res.status(400).json({ error: 'Nome obrigatório' }); return; }
-    const binder = new Binder({ userId: req.userId, name, gridConfig, coverPhotoUrl });
+    const binder = new Binder({ userId: req.userId, ...data });
     await binder.save();
     res.status(201).json({ data: await populateBinder(binder) });
   } catch {
@@ -67,22 +66,35 @@ router.patch('/:id/slots/:position', async (req: Request, res: Response) => {
   try {
     const binder = await Binder.findOne({ _id: req.params.id, userId: req.userId });
     if (!binder) { res.status(404).json({ error: 'Binder não encontrado' }); return; }
+
     const pos = parseInt(req.params.position, 10);
+    if (isNaN(pos)) { res.status(400).json({ error: 'Posição inválida' }); return; }
+
     const slot = binder.slots.find(s => s.position === pos);
     if (!slot) { res.status(404).json({ error: 'Slot não encontrado' }); return; }
-    const { cardId, condition, quantity, language } = req.body;
-    if (cardId !== undefined) slot.cardId = cardId;
-    if (condition)            slot.condition = condition;
-    if (quantity)             slot.quantity = quantity;
-    if (language)             slot.language = language;
-    await binder.save();
-    const populated = await populateBinder(binder);
-    // Log se carta não foi encontrada no banco após salvar
-    const savedSlot = populated.slots.find((s: any) => s.position === pos);
-    if (cardId && savedSlot && !savedSlot.card) {
-      console.warn(`⚠️  cardId "${cardId}" salvo no slot ${pos} mas não encontrado na coleção Card`);
+
+    const { data: slotData, errors: slotErrors } = validateSlotUpdate(req.body);
+    if (slotErrors) { res.status(400).json({ errors: slotErrors }); return; }
+    const { cardId, condition, quantity, language } = slotData!;
+
+    // Valida que o cardId existe no banco antes de salvar
+    if (cardId !== undefined && cardId !== null) {
+      const cardExists = await Card.exists({ _id: cardId });
+      if (!cardExists) {
+        res.status(400).json({ error: `Carta "${cardId}" não encontrada no banco. Sincronize o catálogo.` });
+        return;
+      }
+      slot.cardId = cardId;
+    } else if (cardId === null) {
+      slot.cardId = null; // limpar slot é permitido
     }
-    res.json({ data: populated });
+
+    if (condition !== undefined)  slot.condition = condition;
+    if (quantity !== undefined)   slot.quantity = quantity;
+    if (language !== undefined)   slot.language = language;
+
+    await binder.save();
+    res.json({ data: await populateBinder(binder) });
   } catch (err) {
     console.error('❌ Erro ao atualizar slot:', err);
     res.status(500).json({ error: 'Erro ao atualizar slot' });
