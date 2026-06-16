@@ -2,7 +2,9 @@ name: Agent Tester (E2E Sintético)
 
 on:
   schedule:
-    - cron: '15 12 * * *'
+    - cron: '15 12 * * *'   # 09:15 BRT diariamente
+  push:
+    branches: [main]         # roda após todo commit em main
   workflow_dispatch:
 
 jobs:
@@ -38,4 +40,5 @@ jobs:
       - name: Fail if any route failed
         if: steps.agent.outcome == 'failure'
         run: |
-          echo "❌ Agent Tester detectou falhas. Veja
+          echo "❌ Agent Tester detectou falhas. Veja o relatório acima."
+          exit 1
