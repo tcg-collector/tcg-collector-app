@@ -1,16 +1,20 @@
 name: Agent Tester (E2E Sintético)
+run-name: "[Agent Tester] ${{ github.event.workflow_run.head_commit.message || 'manual' }}"
 
 on:
   schedule:
     - cron: '15 12 * * *'   # 09:15 BRT diariamente
-  push:
-    branches: [main]         # roda após todo commit em main
+  workflow_run:
+    workflows: ["CI"]        # roda após CI completar com sucesso em main
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
   agent-tester:
     name: Agent Tester — 16 Rotas API
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     defaults:
       run:
         working-directory: ./backend
