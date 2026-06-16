@@ -180,7 +180,7 @@ async function checkRoute(
 
 // ─── Warm-up: aguarda Railway estar pronto ────────────────────────────────────
 
-async function waitForServer(maxWaitMs = 120_000): Promise<void> {
+async function waitForServer(maxWaitMs = 300_000): Promise<void> {
   const deadline = Date.now() + maxWaitMs;
   let attempt = 0;
   while (Date.now() < deadline) {

@@ -31,6 +31,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Aguardar Railway reiniciar após deploy
+        if: github.event_name == 'workflow_run'
+        run: |
+          echo "⏳ Aguardando 90s para Railway concluir o redeploy..."
+          sleep 90
+
       - name: Run Agent Tester
         env:
           AGENT_TESTER_BASE_URL: https://tcg-collector-app-production.up.railway.app
