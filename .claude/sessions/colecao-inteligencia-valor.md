@@ -1,7 +1,7 @@
 # Sessão: Coleção com Inteligência de Valor
 
 **Slug:** colecao-inteligencia-valor  
-**Status:** executing  
+**Status:** done  
 **Iniciada:** 2026-06-16  
 **Objetivo:** Adicionar painel de inteligência de valor no topo da tela de Coleção — resumo total em BRL + delta, carrossel de maiores valorizações e carrossel de mais valiosas da coleção do usuário.
 
@@ -16,7 +16,7 @@
 - [ ] Backend implementado (N/A — zero mudanças de backend)
 - [x] Frontend implementado
 - [x] Testes passando (typecheck + lint)
-- [ ] /ship executado com sucesso
+- [x] /ship executado com sucesso
 
 ## Contexto para próxima sessão
 - **Zero mudanças de backend** — feature é puramente frontend

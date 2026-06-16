@@ -1,7 +1,7 @@
 # Sessão: Home Carrosséis de Mercado
 
 **Slug:** home-carrosseis-mercado  
-**Status:** executing  
+**Status:** done  
 **Iniciada:** 2026-06-16  
 **Objetivo:** Redesign da Home — remover sino e market row hardcoded, adicionar carrosséis "Maiores Valorizações" e "Mais Valiosas" alimentados pelos endpoints /api/prices/top-gainers e /api/prices/top-value.
 
@@ -16,7 +16,7 @@
 - [ ] Backend implementado (N/A — zero mudanças de backend)
 - [x] Frontend implementado
 - [x] Testes passando (typecheck + lint)
-- [ ] /ship executado com sucesso
+- [x] /ship executado com sucesso
 
 ## Contexto para próxima sessão
 - **Zero mudanças de backend** — feature é puramente frontend

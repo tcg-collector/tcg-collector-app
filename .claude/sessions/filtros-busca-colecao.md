@@ -1,7 +1,7 @@
 # Sessão: Filtros, Busca e Ordenação na Coleção
 
 **Slug:** filtros-busca-colecao  
-**Status:** executing  
+**Status:** done  
 **Iniciada:** 2026-06-16  
 **Objetivo:** Adicionar busca, chips de condição e ordenação client-side nas telas de coleção e binder, com UX adaptativa para muitos binders e modal reativo com debounce.
 
@@ -16,7 +16,7 @@
 - [x] Backend implementado (sem mudanças — tudo client-side)
 - [x] Frontend implementado
 - [x] Testes passando (typecheck + lint — 0 erros)
-- [ ] /ship executado com sucesso
+- [x] /ship executado com sucesso
 
 ## Contexto para próxima sessão
 - **Zero mudanças de backend** — todos os dados já chegam populados nas rotas existentes
