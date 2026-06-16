@@ -1,7 +1,7 @@
 /**
  * Agent Tester — TCG Bindex
  *
- * Testa todas as 16 rotas da API em sequência, usando dados reais do banco.
+ * Testa todas as 21 rotas da API em sequência, usando dados reais do banco.
  * Executa como GitHub Action diariamente e gera relatório no GitHub Summary.
  *
  * Auth: gera token fresco a cada execução via Clerk Backend + Frontend API.
@@ -31,11 +31,11 @@ const KNOWN_ROUTES: Array<{ method: string; path: string; description: string; c
   { method: 'PATCH', path: '/api/binders/:id/slots/:pos',  description: 'Colocar carta em slot',           covered: true },
   { method: 'POST',  path: '/api/binders/:id/pages',       description: 'Adicionar página ao binder',      covered: true },
   { method: 'POST',  path: '/api/scan',                    description: 'Scan IA por foto',                covered: true },
-  { method: 'GET',   path: '/api/prices/top-gainers',      description: 'Top valorizações globais',         covered: false },
-  { method: 'GET',   path: '/api/prices/top-value',        description: 'Top cartas mais valiosas globais', covered: false },
-  { method: 'GET',   path: '/api/collections/top-gainers', description: 'Top valorizações da coleção',      covered: false },
-  { method: 'GET',   path: '/api/collections/top-value',   description: 'Top cartas valiosas da coleção',   covered: false },
-  { method: 'GET',   path: '/api/collections/summary',     description: 'Resumo de valor da coleção',       covered: false },
+  { method: 'GET',   path: '/api/prices/top-gainers',      description: 'Top valorizações globais',         covered: true },
+  { method: 'GET',   path: '/api/prices/top-value',        description: 'Top cartas mais valiosas globais', covered: true },
+  { method: 'GET',   path: '/api/collections/top-gainers', description: 'Top valorizações da coleção',      covered: true },
+  { method: 'GET',   path: '/api/collections/top-value',   description: 'Top cartas valiosas da coleção',   covered: true },
+  { method: 'GET',   path: '/api/collections/summary',     description: 'Resumo de valor da coleção',       covered: true },
 ];
 
 // ─── Gerar token fresco via Clerk ─────────────────────────────────────────────
@@ -258,6 +258,25 @@ async function runAll(token: string) {
   } else {
     results.push({ route: '/api/collections', method: 'POST', name: 'Adicionar carta à coleção', status: 'skip', note: 'Nenhum cardId disponível' });
   }
+
+  // Histórico de preços — rotas globais
+  await checkRoute('Top valorizações globais (7d)', 'GET', '/api/prices/top-gainers?days=7&limit=5', token, {
+    expectedStatus: [200], note: 'Pode retornar array vazio se não houver histórico',
+  });
+  await checkRoute('Top cartas mais valiosas globais', 'GET', '/api/prices/top-value?limit=5', token, {
+    expectedStatus: [200],
+  });
+
+  // Histórico de preços — rotas da coleção do usuário
+  await checkRoute('Top valorizações da coleção (7d)', 'GET', '/api/collections/top-gainers?days=7&limit=5', token, {
+    expectedStatus: [200], note: 'Pode retornar array vazio se coleção estiver vazia',
+  });
+  await checkRoute('Top cartas valiosas da coleção', 'GET', '/api/collections/top-value?limit=5', token, {
+    expectedStatus: [200],
+  });
+  await checkRoute('Resumo de valor da coleção (7d)', 'GET', '/api/collections/summary?days=7', token, {
+    expectedStatus: [200], note: 'deltaUSD pode ser 0 se não houver histórico',
+  });
 
   await checkRoute('Scan de carta (rota acessível e autenticada)', 'POST', '/api/scan', token, {
     body: { image: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==' },

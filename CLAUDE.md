@@ -77,7 +77,7 @@ cd app && npm run lint             # ESLint
 
 ---
 
-## API — 16 rotas
+## API — 21 rotas
 
 ### Pública
 | Método | Rota | Descrição |
@@ -90,9 +90,12 @@ cd app && npm run lint             # ESLint
 | GET | `/api/cards` | Lista cartas (`name`, `setId`, `page`, `limit`) |
 | GET | `/api/cards/:id` | Detalhe de carta |
 | GET | `/api/sets` | Lista edições disponíveis |
-| GET | `/api/collections` | Coleção do usuário |
+| GET | `/api/collections` | Coleção avulsa do usuário |
 | POST | `/api/collections` | Adiciona carta à coleção |
 | DELETE | `/api/collections/:id` | Remove carta da coleção |
+| GET | `/api/collections/top-gainers` | Top valorizações da coleção (`days=7\|30\|60`, `limit`) |
+| GET | `/api/collections/top-value` | Cartas mais valiosas da coleção (`limit`) |
+| GET | `/api/collections/summary` | Valor total + delta da coleção (`days=7\|30\|60`) |
 | GET | `/api/binders` | Lista binders do usuário |
 | POST | `/api/binders` | Cria binder |
 | GET | `/api/binders/:id` | Detalhe de binder com slots populados |
@@ -101,6 +104,8 @@ cd app && npm run lint             # ESLint
 | POST | `/api/binders/:id/pages` | Adiciona página ao binder |
 | GET | `/api/prices/exchange` | Cotação USD→BRL atual |
 | GET | `/api/prices/:cardId` | Preço de carta (TCGPlayer market) |
+| GET | `/api/prices/top-gainers` | Top valorizações globais (`days=7\|30\|60`, `limit`) |
+| GET | `/api/prices/top-value` | Cartas mais valiosas globais (`limit`) |
 | POST | `/api/scan` | Scan IA por foto — **rate limit 10/min, timeout 45s** |
 
 ---
@@ -113,6 +118,8 @@ Campos: `name`, `number`, `set{id,name,series,images}`, `images{small,large}`, `
 **Binder** — `userId` (Clerk ID), `name`, `coverImage`, `gridConfig` (`2x2|3x3|3x4|4x4`), `slots[]` com `position` (0-indexed), `cardId` (ref Card._id), `condition`.
 
 **Collection** — `userId`, `cardId`, `condition`, `addedAt`.
+
+**PriceHistory** — `cardId` (string, ref Card._id), `date` (Date, dia truncado), `market` (number USD). Índice único `{ cardId, date }`. TTL 60 dias. Populado pelo cron de sync de preços (06:00 UTC).
 
 **GridConfig válidos:** `2x2` | `3x3` | `3x4` | `4x4` — nunca inventar outros valores.
 
