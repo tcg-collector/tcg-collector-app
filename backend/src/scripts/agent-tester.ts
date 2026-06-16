@@ -36,7 +36,6 @@ async function resolveToken(): Promise<string> {
     headers: {
       Authorization: `Bearer ${secretKey}`,
       'Content-Type': 'application/json',
-      'Clerk-API-Version': '2025-01-17',
     },
     body: JSON.stringify({ user_id: userId, expires_in_seconds: 120 }),
   });
@@ -313,11 +312,4 @@ function buildReport(): string {
       appendFileSync(summaryFile, report + '\n');
     }
 
-    const failed = results.filter(r => r.status === 'fail').length;
-    if (failed > 0) { console.error(`\n❌ ${failed} rota(s) falharam.`); process.exit(1); }
-    else { console.log(`\n✅ Todas as rotas testadas passaram.`); }
-  } catch (err) {
-    console.error('Erro fatal no Agent Tester:', err);
-    process.exit(1);
-  }
-})();
+    const failed = 
