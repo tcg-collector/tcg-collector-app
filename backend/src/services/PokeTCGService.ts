@@ -1,5 +1,7 @@
 import axios from 'axios';
 import { Card } from '../models/Card';
+import { PriceHistory } from '../models/PriceHistory';
+import { getBestMarket, startOfDay } from './priceUtils';
 
 const BASE_URL = 'https://api.pokemontcg.io/v2';
 
@@ -187,6 +189,29 @@ export async function syncPricesOnly(): Promise<number> {
   }
 
   console.log(`✅ Preços atualizados: ${total} cartas`);
+
+  // Salva snapshot diário para TODAS as cartas (preserva histórico mesmo quando API não retorna preço)
+  try {
+    const today = startOfDay(new Date());
+    const allCards = await Card.find({}, { _id: 1, prices: 1 }).lean();
+    const snapshotOps = allCards
+      .map(c => ({ cardId: c._id as string, market: getBestMarket(c.prices as Parameters<typeof getBestMarket>[0]) }))
+      .filter((s): s is { cardId: string; market: number } => s.market !== null)
+      .map(s => ({
+        updateOne: {
+          filter: { cardId: s.cardId, date: today },
+          update: { $set: { cardId: s.cardId, date: today, market: s.market } },
+          upsert: true,
+        }
+      }));
+    if (snapshotOps.length) {
+      await PriceHistory.bulkWrite(snapshotOps, { ordered: false });
+      console.log(`📸 Snapshots salvos: ${snapshotOps.length} cartas`);
+    }
+  } catch (e) {
+    console.error('❌ Erro ao salvar snapshots de preço:', e);
+  }
+
   return total;
 }
 
