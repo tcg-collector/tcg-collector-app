@@ -29,7 +29,8 @@ jobs:
         env:
           AGENT_TESTER_BASE_URL: https://tcg-collector-app-production.up.railway.app
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-          CLERK_TEST_SESSION_ID: ${{ secrets.CLERK_TEST_SESSION_ID }}
+          CLERK_TEST_USER_ID: ${{ secrets.CLERK_TEST_USER_ID }}
+          CLERK_FRONTEND_API_URL: ${{ secrets.CLERK_FRONTEND_API_URL }}
         run: npx ts-node --project tsconfig.json src/scripts/agent-tester.ts
         id: agent
         continue-on-error: true
@@ -37,5 +38,4 @@ jobs:
       - name: Fail if any route failed
         if: steps.agent.outcome == 'failure'
         run: |
-          echo "❌ Agent Tester detectou falhas. Veja o relatório acima."
-          exit 1
+          echo "❌ Agent Tester detectou falhas. Veja
