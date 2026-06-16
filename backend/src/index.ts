@@ -5,6 +5,7 @@ import cron from 'node-cron';
 import { connectDB } from './config/database';
 import routes from './routes';
 import { syncPricesOnly } from './services/PokeTCGService';
+import { errorHandler } from './middleware/errorHandler';
 
 dotenv.config();
 
@@ -61,6 +62,9 @@ const startServer = async () => {
     process.exit(1);
   }
 };
+
+// Error handler global — deve ser o ÚLTIMO middleware registrado
+app.use(errorHandler);
 
 startServer();
 
