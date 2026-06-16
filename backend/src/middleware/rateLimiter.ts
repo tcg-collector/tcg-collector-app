@@ -23,8 +23,7 @@ export function rateLimiter(options: RateLimitOptions) {
   }, 5 * 60 * 1000);
 
   return function (req: Request, res: Response, next: NextFunction): void {
-    // Usa userId autenticado como chave; fallback para IP (nunca bypassa o limite)
-    const identifier = req.userId ?? req.ip ?? 'unknown';
+    const identifier = (req as Request & { userId?: string }).userId ?? req.ip ?? 'unknown';
 
     const now = Date.now();
     const record = requests.get(identifier);

@@ -15,6 +15,8 @@ Registro de todas as decisões de arquitetura importantes do projeto. Cada ADR d
 | [[ADR-005 - expo-router]] | Roteamento file-based | ✅ Aprovada |
 | [[ADR-006 - Clerk Production Instance]] | Instância Clerk Production correta em prod | ✅ Aprovada |
 | [[ADR-007 - Sync de Cartas PokéTCG]] | Estratégia de sync do catálogo de cartas | ✅ Aprovada |
+| [[ADR-008 - Estrategia de Qualidade e Estabilidade]] | Testes, CI/CD, rate limiting, CORS, validação | ✅ Aprovada |
+| [[ADR-009 - Agent Tester Sintetico]] | Monitoramento sintético E2E das 16 rotas em produção | ✅ Aprovada |
 
 ## Template para novos ADRs
 

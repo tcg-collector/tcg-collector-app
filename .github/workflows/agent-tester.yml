@@ -1,0 +1,41 @@
+name: Agent Tester (E2E Sintético)
+
+on:
+  schedule:
+    # Roda todos os dias às 09:15 BRT (12:15 UTC) — depois do daily health
+    - cron: '15 12 * * *'
+  workflow_dispatch:
+
+jobs:
+  agent-tester:
+    name: Agent Tester — 16 Rotas API
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Agent Tester
+        env:
+          AGENT_TESTER_BASE_URL: https://tcg-collector-app-production.up.railway.app
+          CLERK_TEST_TOKEN: ${{ secrets.CLERK_TEST_TOKEN }}
+        run: npx ts-node --project tsconfig.json src/scripts/agent-tester.ts
+        continue-on-error: true
+        id: agent
+
+      - name: Fail if any route failed
+        if: steps.agent.outcome == 'failure'
+        run: |
+          echo "❌ Agent Tester detectou falhas. Veja o relatório acima."
+          exit 1
