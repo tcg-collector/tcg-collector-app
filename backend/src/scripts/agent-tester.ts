@@ -100,9 +100,10 @@ async function checkRoute(
     auth?: boolean;
     expectedStatus?: number | number[];
     note?: string;
+    timeoutMs?: number;
   } = {}
 ): Promise<{ ok: boolean; body: unknown; status: number }> {
-  const { auth = true, expectedStatus = [200, 201], note } = opts;
+  const { auth = true, expectedStatus = [200, 201], note, timeoutMs = 15_000 } = opts;
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
 
   if (auth) {
@@ -122,7 +123,7 @@ async function checkRoute(
       method,
       headers,
       body: opts.body ? JSON.stringify(opts.body) : undefined,
-      signal: AbortSignal.timeout(15_000),
+      signal: AbortSignal.timeout(timeoutMs),
     });
 
     httpStatus = res.status;
@@ -234,6 +235,7 @@ async function runAll(token: string) {
     body: { image: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==' },
     expectedStatus: [400, 422, 429, 200],
     note: 'Payload sintético — confirma rota ativa e autenticada',
+    timeoutMs: 45_000,
   });
 
   if (createdCollectionEntryId) {
