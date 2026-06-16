@@ -1,7 +1,7 @@
 # Sessão: Histórico de Preços das Cartas
 
 **Slug:** historico-precos  
-**Status:** executing  
+**Status:** done  
 **Iniciada:** 2026-06-16  
 **Objetivo:** Criar camada de histórico de preços com snapshots diários, 5 novos endpoints e helper calcGainers() compartilhado — fundação para carrosséis de mercado e inteligência de valor.
 
@@ -16,7 +16,7 @@
 - [x] Backend implementado
 - [x] Frontend implementado (N/A — feature é backend puro)
 - [x] Testes passando (typecheck + lint + jest)
-- [ ] /ship executado com sucesso
+- [x] /ship executado com sucesso
 
 ## Contexto para próxima sessão
 - **Zero mudanças de frontend** — feature é fundação de backend

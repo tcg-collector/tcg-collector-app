@@ -1,12 +1,13 @@
 import React from 'react';
 import {
   View, Text, ScrollView, StyleSheet,
-  TouchableOpacity, Switch, Image, ActivityIndicator,
+  TouchableOpacity, Image, ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/colors';
 import { useUser, useClerk } from '@clerk/clerk-expo';
 import { useBinders } from '@/hooks/useBinders';
+import { useCollection } from '@/hooks/useCollection';
 import { useExchangeRate } from '@/hooks/useExchangeRate';
 import type { BinderSlot } from '@/services/binders';
 
@@ -29,12 +30,13 @@ const CONDITION_COLOR: Record<string, string> = {
 // ── hook de estatísticas ─────────────────────────────────────────────────────
 
 function useCollectionStats() {
-  const { binders, loading } = useBinders();
+  const { binders, loading: loadingBinders } = useBinders();
+  const { items: looseItems, loading: loadingLoose, totalValueUSD: looseValueUSD } = useCollection();
   const { rate } = useExchangeRate();
 
-  if (loading || !rate) return { loading: true, stats: null };
+  if (loadingBinders || loadingLoose || !rate) return { loading: true, stats: null };
 
-  // Todos os slots com carta
+  // Todos os slots com carta (binders)
   const allSlots: (BinderSlot & { binderName: string })[] = [];
   for (const b of binders) {
     for (const s of b.slots) {
@@ -42,21 +44,25 @@ function useCollectionStats() {
     }
   }
 
-  const totalCards  = allSlots.length;
+  const binderCardsCount = allSlots.length;
   const binderCount = binders.length;
 
-  // Valor total (preço base × multiplicador de condição × taxa)
-  let totalValue = 0;
+  // Valor total binders
+  let binderValue = 0;
   for (const s of allSlots) {
     const base = s.card!.prices?.holofoil?.market ?? s.card!.prices?.normal?.market ?? 0;
-    totalValue += (base ?? 0) * (CONDITION_MULT[s.condition] ?? 1) * rate;
+    binderValue += (base ?? 0) * (CONDITION_MULT[s.condition] ?? 1) * rate;
   }
 
-  // Distribuição por condição
+  // Totais combinados (binders + avulso)
+  const totalCards = binderCardsCount + looseItems.length;
+  const totalValue = binderValue + looseValueUSD * rate;
+
+  // Distribuição por condição (binders)
   const condCount: Record<string, number> = { NM: 0, LP: 0, MP: 0, HP: 0, DMG: 0 };
   for (const s of allSlots) condCount[s.condition] = (condCount[s.condition] ?? 0) + 1;
 
-  // Top 5 cartas mais valiosas
+  // Top 5 cartas mais valiosas (binders)
   const topCards = [...allSlots]
     .map(s => {
       const base = s.card!.prices?.holofoil?.market ?? s.card!.prices?.normal?.market ?? 0;
@@ -67,7 +73,7 @@ function useCollectionStats() {
     .sort((a, b) => b.valueBRL - a.valueBRL)
     .slice(0, 5);
 
-  // Sets mais presentes
+  // Sets mais presentes (binders)
   const setCount: Record<string, number> = {};
   for (const s of allSlots) {
     const setName = s.card!.set?.name ?? 'Desconhecido';
@@ -86,30 +92,36 @@ function useCollectionStats() {
 // ── componentes ──────────────────────────────────────────────────────────────
 
 interface SettingRowProps {
-  icon:    React.ComponentProps<typeof Ionicons>['name'];
-  label:   string;
-  value?:  string;
-  toggle?: boolean;
-  danger?: boolean;
-  onPress?: () => void;
+  icon:        React.ComponentProps<typeof Ionicons>['name'];
+  label:       string;
+  value?:      string;
+  danger?:     boolean;
+  comingSoon?: boolean;
+  onPress?:    () => void;
 }
 
-function SettingRow({ icon, label, value, toggle, danger, onPress }: SettingRowProps) {
+function SettingRow({ icon, label, value, danger, comingSoon, onPress }: SettingRowProps) {
   return (
-    <TouchableOpacity style={styles.settingRow} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity
+      style={styles.settingRow}
+      onPress={onPress}
+      activeOpacity={comingSoon ? 1 : 0.7}
+      disabled={comingSoon}
+    >
       <View style={[styles.settingIcon, danger && styles.settingIconDanger]}>
         <Ionicons name={icon} size={18} color={danger ? Colors.crimson : Colors.ash} />
       </View>
       <Text style={[styles.settingLabel, danger && { color: Colors.crimson }]}>{label}</Text>
       <View style={styles.settingRight}>
-        {value !== undefined && <Text style={styles.settingValue}>{value}</Text>}
-        {toggle !== undefined
-          ? <Switch
-              value={toggle}
-              trackColor={{ false: Colors.surface2, true: Colors.gold + '80' }}
-              thumbColor={toggle ? Colors.gold : Colors.ash}
-            />
-          : <Ionicons name="chevron-forward" size={16} color={Colors.ash} />}
+        {comingSoon ? (
+          <View style={styles.comingSoonBadge}>
+            <Text style={styles.comingSoonText}>Em breve</Text>
+          </View>
+        ) : value !== undefined ? (
+          <Text style={styles.settingValue}>{value}</Text>
+        ) : (
+          <Ionicons name="chevron-forward" size={16} color={Colors.ash} />
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -245,22 +257,18 @@ export default function ProfileScreen() {
       {/* Configurações */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Coleção</Text>
-        <SettingRow icon="pricetag-outline"       label="Moeda"             value="BRL" />
-        <SettingRow icon="sync-outline"           label="Sync de preços"    value="Diário" />
-        <SettingRow icon="cloud-download-outline" label="Exportar coleção" />
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Notificações</Text>
-        <SettingRow icon="trending-up-outline"   label="Alerta de alta"  toggle={false} />
-        <SettingRow icon="trending-down-outline" label="Alerta de baixa" toggle={false} />
+        <SettingRow icon="pricetag-outline"       label="Moeda"            value="BRL" />
+        <SettingRow icon="sync-outline"           label="Sync de preços"   value="Diário" />
+        <SettingRow icon="cloud-download-outline" label="Exportar coleção" comingSoon />
       </View>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Conta</Text>
-        <SettingRow icon="diamond-outline"            label="Assinar Bindex Pro"  value="Em breve" />
-        <SettingRow icon="help-circle-outline"        label="Ajuda & Suporte" />
-        <SettingRow icon="information-circle-outline" label="Sobre o app"          value="v1.0.0" />
+        <SettingRow icon="trending-up-outline"        label="Alerta de alta"      comingSoon />
+        <SettingRow icon="trending-down-outline"      label="Alerta de baixa"     comingSoon />
+        <SettingRow icon="diamond-outline"            label="Assinar Bindex Pro"  comingSoon />
+        <SettingRow icon="help-circle-outline"        label="Ajuda & Suporte"     comingSoon />
+        <SettingRow icon="information-circle-outline" label="Sobre o app"         value="v1.0.0" />
         <SettingRow icon="log-out-outline"            label="Sair" danger onPress={() => signOut()} />
       </View>
 
@@ -276,7 +284,6 @@ const styles = StyleSheet.create({
   hero:             { alignItems: 'center', paddingTop: 32, paddingBottom: 24 },
   avatar:           { width: 72, height: 72, borderRadius: 36, backgroundColor: Colors.gold, alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
   avatarText:       { fontSize: 28, fontWeight: '800', color: Colors.void },
-  name:             { fontSize: 20, fontWeight: '700', color: Colors.snow, marginBottom: 4 },
   email:            { fontSize: 13, color: Colors.ash, marginBottom: 12 },
   planBadge:        { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: Colors.gold + '20', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5, borderWidth: 1, borderColor: Colors.gold + '40' },
   planText:         { fontSize: 12, fontWeight: '600', color: Colors.gold },
@@ -325,4 +332,6 @@ const styles = StyleSheet.create({
   settingLabel:     { flex: 1, fontSize: 15, color: Colors.snow, fontWeight: '500' },
   settingRight:     { flexDirection: 'row', alignItems: 'center', gap: 8 },
   settingValue:     { fontSize: 13, color: Colors.ash },
+  comingSoonBadge:  { backgroundColor: Colors.gold + '20', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: Colors.gold + '40' },
+  comingSoonText:   { fontSize: 11, fontWeight: '600', color: Colors.gold },
 });
