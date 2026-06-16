@@ -61,7 +61,7 @@ export default function CollectionScreen() {
   // Filtros / layout binders
   const [binderSearch, setBinderSearch] = useState('');
   const [bindersExpanded, setBindersExpanded] = useState(false);
-  const [binderLayout, setBinderLayout] = useState<BinderLayout>('grid');
+  const [binderLayout, setBinderLayout] = useState<BinderLayout>('list');
 
   // Modal: adicionar carta avulsa
   const [showAddLoose, setShowAddLoose] = useState(false);
@@ -170,113 +170,90 @@ export default function CollectionScreen() {
   return (
     <View style={styles.container}>
     <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
-      {/* Painel de inteligência de valor — visível quando há cartas (binders ou avulsas) */}
-      {totalAllCards > 0 && (
+      {/* Resumo geral + delta */}
+      <View style={styles.summary}>
+        <View style={styles.summaryRow}>
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryValue}>{formatBRL(totalBRL)}</Text>
+            <Text style={styles.summaryLabel}>Valor total</Text>
+          </View>
+          <View style={styles.divider} />
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryValue}>{totalAllCards}</Text>
+            <Text style={styles.summaryLabel}>Cartas</Text>
+          </View>
+          <View style={styles.divider} />
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryValue}>{binders.length}</Text>
+            <Text style={styles.summaryLabel}>Binders</Text>
+          </View>
+        </View>
+        {summary && summary.deltaUSD !== 0 && displayRate && (
+          <View style={styles.deltaRow}>
+            <View style={[styles.deltaBadge, { backgroundColor: summary.deltaUSD > 0 ? Colors.mint + '22' : Colors.crimson + '22' }]}>
+              <Text style={[styles.deltaPct, { color: summary.deltaUSD > 0 ? Colors.mint : Colors.crimson }]}>
+                {summary.deltaPct > 0 ? '+' : ''}{summary.deltaPct.toFixed(1)}%
+              </Text>
+            </View>
+            <Text style={[styles.deltaAbs, { color: summary.deltaUSD > 0 ? Colors.mint : Colors.crimson }]}>
+              {summary.deltaUSD > 0 ? '+' : ''}{formatBRL(summary.deltaUSD * displayRate)}
+            </Text>
+            <Text style={styles.deltaPeriod}>últimos 7 dias</Text>
+          </View>
+        )}
+      </View>
+
+      {/* Carrosséis de inteligência — visíveis quando há cartas */}
+      {totalAllCards > 0 && !loadingMarket && (
         <>
-          {loadingMarket ? (
-            <ActivityIndicator color={Colors.gold} style={{ marginTop: 16, marginBottom: 4 }} />
-          ) : (
+          {gainers.length > 0 && (
             <>
-              {/* Resumo de valor + delta */}
-              {summary && (
-                <View style={styles.marketSummary}>
-                  <View>
-                    <Text style={styles.marketSummaryLabel}>Valor da coleção</Text>
-                    <Text style={styles.marketSummaryValue}>
-                      {displayRate ? formatBRL(summary.totalValueUSD * displayRate) : '—'}
-                    </Text>
-                  </View>
-                  {summary.deltaUSD !== 0 && displayRate ? (
-                    <View style={styles.marketDeltaBox}>
-                      <Text style={[
-                        styles.marketDelta,
-                        { color: summary.deltaUSD > 0 ? Colors.mint : Colors.crimson },
-                      ]}>
-                        {summary.deltaUSD > 0 ? '+' : ''}{formatBRL(summary.deltaUSD * displayRate)}
-                      </Text>
-                      <Text style={[
-                        styles.marketDeltaPct,
-                        { color: summary.deltaUSD > 0 ? Colors.mint : Colors.crimson },
-                      ]}>
-                        {summary.deltaPct > 0 ? '+' : ''}{summary.deltaPct.toFixed(1)}% (7d)
-                      </Text>
-                    </View>
-                  ) : (
-                    <Text style={styles.marketDeltaEmpty}>— sem histórico ainda</Text>
-                  )}
-                </View>
-              )}
-
-              {/* Carrossel: Maiores Valorizações */}
-              {gainers.length > 0 && (
-                <>
-                  <View style={styles.marketSectionHeader}>
-                    <Text style={styles.marketSectionTitle}>Maiores Valorizações</Text>
-                    <Text style={styles.marketSectionHint}>sua coleção · 7d</Text>
-                  </View>
-                  <FlatList
-                    horizontal
-                    data={gainers}
-                    keyExtractor={item => item.card._id}
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={styles.marketCarousel}
-                    renderItem={({ item }) => (
-                      <MarketCardItem
-                        card={item.card}
-                        priceBRL={displayRate ? formatBRL(item.marketNow * displayRate) : '—'}
-                        badge={`+${item.deltaPct.toFixed(0)}%`}
-                        onPress={() => router.push(`/card/${item.card._id}`)}
-                      />
-                    )}
+              <View style={styles.marketSectionHeader}>
+                <Text style={styles.marketSectionTitle}>Mais valorizadas</Text>
+                <Text style={styles.marketSectionHint}>sua coleção · 7d</Text>
+              </View>
+              <FlatList
+                horizontal
+                data={gainers}
+                keyExtractor={item => item.card._id}
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.marketCarousel}
+                renderItem={({ item }) => (
+                  <MarketCardItem
+                    card={item.card}
+                    priceBRL={displayRate ? formatBRL(item.marketNow * displayRate) : '—'}
+                    badge={`+${item.deltaPct.toFixed(0)}%`}
+                    onPress={() => router.push(`/card/${item.card._id}`)}
                   />
-                </>
-              )}
+                )}
+              />
+            </>
+          )}
 
-              {/* Carrossel: Mais Valiosas */}
-              {topValue.length > 0 && (
-                <>
-                  <View style={styles.marketSectionHeader}>
-                    <Text style={styles.marketSectionTitle}>Mais Valiosas</Text>
-                    <Text style={styles.marketSectionHint}>sua coleção</Text>
-                  </View>
-                  <FlatList
-                    horizontal
-                    data={topValue}
-                    keyExtractor={item => item.card._id}
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={styles.marketCarousel}
-                    renderItem={({ item }) => (
-                      <MarketCardItem
-                        card={item.card}
-                        priceBRL={displayRate ? formatBRL(item.market * displayRate) : '—'}
-                        onPress={() => router.push(`/card/${item.card._id}`)}
-                      />
-                    )}
+          {topValue.length > 0 && (
+            <>
+              <View style={styles.marketSectionHeader}>
+                <Text style={styles.marketSectionTitle}>Mais valiosas</Text>
+                <Text style={styles.marketSectionHint}>sua coleção</Text>
+              </View>
+              <FlatList
+                horizontal
+                data={topValue}
+                keyExtractor={item => item.card._id}
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.marketCarousel}
+                renderItem={({ item }) => (
+                  <MarketCardItem
+                    card={item.card}
+                    priceBRL={displayRate ? formatBRL(item.market * displayRate) : '—'}
+                    onPress={() => router.push(`/card/${item.card._id}`)}
                   />
-                </>
-              )}
+                )}
+              />
             </>
           )}
         </>
       )}
-
-      {/* Resumo geral */}
-      <View style={styles.summary}>
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryValue}>{formatBRL(totalBRL)}</Text>
-          <Text style={styles.summaryLabel}>Valor total</Text>
-        </View>
-        <View style={styles.divider} />
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryValue}>{totalAllCards}</Text>
-          <Text style={styles.summaryLabel}>Cartas</Text>
-        </View>
-        <View style={styles.divider} />
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryValue}>{binders.length}</Text>
-          <Text style={styles.summaryLabel}>Binders</Text>
-        </View>
-      </View>
 
       {/* Seção Binders */}
       <View style={styles.sectionHeader}>
@@ -618,11 +595,17 @@ const styles = StyleSheet.create({
   resultPriceLabel:   { fontSize: 10, color: Colors.ash },
   container:          { flex: 1, backgroundColor: Colors.void },
   content:            { paddingBottom: 40 },
-  summary:            { flexDirection: 'row', backgroundColor: Colors.surface, marginHorizontal: 16, marginTop: 16, borderRadius: 14, padding: 16, justifyContent: 'space-around' },
-  summaryItem:        { alignItems: 'center' },
+  summary:            { backgroundColor: Colors.surface, marginHorizontal: 16, marginTop: 16, borderRadius: 14, padding: 16, borderWidth: 1, borderColor: Colors.border },
+  summaryRow:         { flexDirection: 'row', justifyContent: 'space-around' },
+  summaryItem:        { alignItems: 'center', flex: 1 },
   summaryValue:       { fontSize: 16, fontWeight: '700', color: Colors.snow },
   summaryLabel:       { fontSize: 11, color: Colors.ash, marginTop: 2 },
   divider:            { width: 1, backgroundColor: Colors.border },
+  deltaRow:           { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: Colors.border },
+  deltaBadge:         { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
+  deltaPct:           { fontSize: 12, fontWeight: '700' },
+  deltaAbs:           { fontSize: 12, fontWeight: '600' },
+  deltaPeriod:        { fontSize: 11, color: Colors.ash },
   sectionHeader:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, marginTop: 24, marginBottom: 12 },
   sectionTitle:       { fontSize: 17, fontWeight: '700', color: Colors.snow },
   sectionCount:       { fontSize: 13, color: Colors.ash },
@@ -654,14 +637,6 @@ const styles = StyleSheet.create({
   looseCardName:      { fontSize: 11, color: Colors.snow, textAlign: 'center' },
   condBadge:          { backgroundColor: Colors.surface2, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2, marginTop: 4 },
   condText:           { fontSize: 10, fontWeight: '700', color: Colors.ash },
-  // Painel de inteligência
-  marketSummary:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: Colors.surface, marginHorizontal: 16, marginTop: 16, borderRadius: 14, padding: 16 },
-  marketSummaryLabel: { fontSize: 11, color: Colors.ash, marginBottom: 2 },
-  marketSummaryValue: { fontSize: 20, fontWeight: '700', color: Colors.snow },
-  marketDeltaBox:     { alignItems: 'flex-end', gap: 2 },
-  marketDelta:        { fontSize: 14, fontWeight: '700' },
-  marketDeltaPct:     { fontSize: 12, fontWeight: '600' },
-  marketDeltaEmpty:   { fontSize: 12, color: Colors.ash },
   marketSectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, marginTop: 20, marginBottom: 12 },
   marketSectionTitle: { fontSize: 16, fontWeight: '700', color: Colors.snow },
   marketSectionHint:  { fontSize: 12, color: Colors.ash },

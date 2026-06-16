@@ -1,62 +1,11 @@
 import React from 'react';
 import {
   View, Text, ScrollView, StyleSheet,
-  TouchableOpacity, ActivityIndicator,
+  TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/colors';
 import { useUser, useClerk } from '@clerk/clerk-expo';
-import { useBinders } from '@/hooks/useBinders';
-import { useCollection } from '@/hooks/useCollection';
-import { useExchangeRate } from '@/hooks/useExchangeRate';
-import type { BinderSlot } from '@/services/binders';
-
-// ── helpers ──────────────────────────────────────────────────────────────────
-
-function formatBRL(v: number) {
-  const [i, d] = v.toFixed(2).split('.');
-  return `R$ ${i.replace(/\B(?=(\d{3})+(?!\d))/g, '.')},${d}`;
-}
-
-const CONDITION_MULT: Record<string, number> = {
-  NM: 1.0, LP: 0.8, MP: 0.6, HP: 0.4, DMG: 0.2,
-};
-
-// ── hook de estatísticas ─────────────────────────────────────────────────────
-
-function useCollectionStats() {
-  const { binders, loading: loadingBinders } = useBinders();
-  const { items: looseItems, loading: loadingLoose, totalValueUSD: looseValueUSD } = useCollection();
-  const { rate } = useExchangeRate();
-
-  if (loadingBinders || loadingLoose || !rate) return { loading: true, stats: null };
-
-  // Todos os slots com carta (binders)
-  const allSlots: (BinderSlot & { binderName: string })[] = [];
-  for (const b of binders) {
-    for (const s of b.slots) {
-      if (s.cardId && s.card) allSlots.push({ ...s, binderName: b.name });
-    }
-  }
-
-  const binderCount = binders.length;
-
-  // Valor total binders
-  let binderValue = 0;
-  for (const s of allSlots) {
-    const base = s.card!.prices?.holofoil?.market ?? s.card!.prices?.normal?.market ?? 0;
-    binderValue += (base ?? 0) * (CONDITION_MULT[s.condition] ?? 1) * rate;
-  }
-
-  // Totais combinados (binders + avulso)
-  const totalCards = allSlots.length + looseItems.length;
-  const totalValue = binderValue + looseValueUSD * rate;
-
-  return {
-    loading: false,
-    stats: { totalValue, totalCards, binderCount },
-  };
-}
 
 // ── componentes ──────────────────────────────────────────────────────────────
 
@@ -101,7 +50,6 @@ function SettingRow({ icon, label, value, danger, comingSoon, onPress }: Setting
 export default function ProfileScreen() {
   const { user } = useUser();
   const { signOut } = useClerk();
-  const { loading, stats } = useCollectionStats();
   const email = user?.primaryEmailAddress?.emailAddress ?? '';
   const avatarLetter = email.charAt(0).toUpperCase();
 
@@ -119,37 +67,6 @@ export default function ProfileScreen() {
           <Text style={styles.planText}>Plano Gratuito</Text>
         </View>
       </View>
-
-      {loading || !stats ? (
-        <View style={styles.loadingBox}>
-          <ActivityIndicator color={Colors.gold} />
-          <Text style={{ color: Colors.ash, marginTop: 8 }}>Calculando coleção...</Text>
-        </View>
-      ) : (
-        <>
-          {/* Stats grid */}
-          <View style={styles.statsGrid}>
-            <View style={styles.statItem}>
-              <Ionicons name="albums" size={20} color={Colors.gold} />
-              <Text style={styles.statValue}>{stats.totalCards}</Text>
-              <Text style={styles.statLabel}>Cartas</Text>
-            </View>
-            <View style={[styles.statItem, styles.statItemBorder]}>
-              <Ionicons name="cash" size={20} color={Colors.gold} />
-              <Text style={styles.statValue} numberOfLines={1} adjustsFontSizeToFit>
-                {formatBRL(stats.totalValue)}
-              </Text>
-              <Text style={styles.statLabel}>Valor total</Text>
-            </View>
-            <View style={[styles.statItem, styles.statItemBorder]}>
-              <Ionicons name="folder" size={20} color={Colors.gold} />
-              <Text style={styles.statValue}>{stats.binderCount}</Text>
-              <Text style={styles.statLabel}>Binders</Text>
-            </View>
-          </View>
-
-        </>
-      )}
 
       {/* Configurações */}
       <View style={styles.section}>
@@ -184,12 +101,6 @@ const styles = StyleSheet.create({
   email:            { fontSize: 13, color: Colors.ash, marginBottom: 12 },
   planBadge:        { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: Colors.gold + '20', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5, borderWidth: 1, borderColor: Colors.gold + '40' },
   planText:         { fontSize: 12, fontWeight: '600', color: Colors.gold },
-  loadingBox:       { alignItems: 'center', paddingVertical: 40 },
-  statsGrid:        { flexDirection: 'row', marginHorizontal: 20, backgroundColor: Colors.surface, borderRadius: 14, marginBottom: 20, borderWidth: 1, borderColor: Colors.border },
-  statItem:         { flex: 1, alignItems: 'center', padding: 16, gap: 4 },
-  statItemBorder:   { borderLeftWidth: 1, borderLeftColor: Colors.border },
-  statValue:        { fontSize: 15, fontWeight: '700', color: Colors.snow },
-  statLabel:        { fontSize: 10, color: Colors.ash },
   section:          { marginHorizontal: 20, marginBottom: 16, backgroundColor: Colors.surface, borderRadius: 14, overflow: 'hidden', borderWidth: 1, borderColor: Colors.border },
   sectionTitle:     { fontSize: 11, fontWeight: '700', color: Colors.ash, textTransform: 'uppercase', letterSpacing: 0.8, paddingHorizontal: 16, paddingTop: 14, paddingBottom: 10 },
 
