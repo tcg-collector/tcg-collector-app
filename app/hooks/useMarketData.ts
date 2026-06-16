@@ -11,17 +11,17 @@ export function useMarketData() {
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([
+    Promise.allSettled([
       pricesService.topGainers(),
       pricesService.topValue(),
       exchangeService.getUSDtoBRL(),
     ])
       .then(([g, v, ex]) => {
-        setGainers(g);
-        setTopValue(v);
-        setRate(ex.data.rate);
+        if (g.status === 'fulfilled') setGainers(g.value);
+        if (v.status === 'fulfilled') setTopValue(v.value);
+        if (ex.status === 'fulfilled') setRate(ex.value.data.rate);
+        if (g.status === 'rejected' && v.status === 'rejected') setError(true);
       })
-      .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, []);
 

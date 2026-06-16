@@ -6,6 +6,20 @@ import { ALLOWED_DAYS, calcGainers, getBestMarket } from '../services/priceUtils
 
 const router = Router();
 
+// Cache em memória para evitar varredura de 20k docs a cada request
+const cache = new Map<string, { data: unknown; expiresAt: number }>();
+const CACHE_TTL_MS = 60 * 60 * 1000; // 1h
+
+function getCache<T>(key: string): T | null {
+  const entry = cache.get(key);
+  if (!entry || Date.now() > entry.expiresAt) return null;
+  return entry.data as T;
+}
+
+function setCache(key: string, data: unknown) {
+  cache.set(key, { data, expiresAt: Date.now() + CACHE_TTL_MS });
+}
+
 // GET /api/prices/exchange - Cotação USD->BRL
 router.get('/exchange', async (_req: Request, res: Response) => {
   try {
@@ -30,10 +44,19 @@ router.get('/top-gainers', requireAuth, async (req: Request, res: Response) => {
     return;
   }
 
+  const cacheKey = `top-gainers:${days}:${limit}`;
+  const cached = getCache<unknown[]>(cacheKey);
+  if (cached) {
+    res.json({ data: cached });
+    return;
+  }
+
   try {
     const allCardIds = await Card.distinct('_id') as string[];
     const results = await calcGainers(allCardIds, days, limit);
-    res.json({ data: results.map(r => ({ card: r.card, marketNow: r.marketNow, marketThen: r.marketThen, deltaPct: r.deltaPct, deltaAbs: r.deltaAbs })) });
+    const data = results.map(r => ({ card: r.card, marketNow: r.marketNow, marketThen: r.marketThen, deltaPct: r.deltaPct, deltaAbs: r.deltaAbs }));
+    setCache(cacheKey, data);
+    res.json({ data });
   } catch {
     res.status(500).json({ error: 'Erro ao buscar maiores valorizações' });
   }
@@ -48,25 +71,42 @@ router.get('/top-value', requireAuth, async (req: Request, res: Response) => {
     return;
   }
 
+  const cacheKey = `top-value:${limit}`;
+  const cached = getCache<unknown[]>(cacheKey);
+  if (cached) {
+    res.json({ data: cached });
+    return;
+  }
+
   try {
-    const cards = await Card.find({
-      $or: [
-        { 'prices.holofoil.market': { $ne: null, $gt: 0 } },
-        { 'prices.normal.market': { $ne: null, $gt: 0 } },
-        { 'prices.reverseHolofoil.market': { $ne: null, $gt: 0 } },
-      ],
-    }).lean();
+    // Busca só os campos necessários e usa sort no MongoDB para evitar carregar tudo em memória
+    const [byHolo, byNormal, byReverse] = await Promise.all([
+      Card.find({ 'prices.holofoil.market': { $gt: 0 } })
+        .select('name number set images prices')
+        .sort({ 'prices.holofoil.market': -1 })
+        .limit(limit * 3)
+        .lean(),
+      Card.find({ 'prices.normal.market': { $gt: 0 }, 'prices.holofoil.market': { $in: [null, 0] } })
+        .select('name number set images prices')
+        .sort({ 'prices.normal.market': -1 })
+        .limit(limit * 3)
+        .lean(),
+      Card.find({ 'prices.reverseHolofoil.market': { $gt: 0 }, 'prices.holofoil.market': { $in: [null, 0] }, 'prices.normal.market': { $in: [null, 0] } })
+        .select('name number set images prices')
+        .sort({ 'prices.reverseHolofoil.market': -1 })
+        .limit(limit * 3)
+        .lean(),
+    ]);
 
-    const withMarket = cards
+    const combined = [...byHolo, ...byNormal, ...byReverse]
       .map(c => ({ card: c, market: getBestMarket(c.prices as Parameters<typeof getBestMarket>[0]) }))
-      .filter(r => r.market !== null) as { card: typeof cards[number]; market: number }[];
-
-    const top = withMarket
+      .filter((r): r is { card: typeof byHolo[number]; market: number } => r.market !== null && r.market > 0)
       .sort((a, b) => b.market - a.market)
       .slice(0, limit)
       .map(r => ({ card: r.card, market: r.market }));
 
-    res.json({ data: top });
+    setCache(cacheKey, combined);
+    res.json({ data: combined });
   } catch {
     res.status(500).json({ error: 'Erro ao buscar cartas mais valiosas' });
   }
