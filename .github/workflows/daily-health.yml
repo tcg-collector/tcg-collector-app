@@ -2,14 +2,12 @@ name: Daily Health Check
 
 on:
   schedule:
-    # Todo dia às 09:00 BRT (12:00 UTC)
     - cron: '0 12 * * *'
-  # Permite rodar manualmente pelo GitHub para testar
   workflow_dispatch:
 
 jobs:
   health:
-    name: Backend — Daily Health Report
+    name: Backend -- Daily Health Report
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -27,82 +25,70 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # ── Testes unitários ──────────────────────────────────────
       - name: Unit tests
         id: unit
-        # npx direto evita problemas de escaping de regex no /bin/sh do Linux
         run: npx jest --testPathIgnorePatterns='/node_modules/' '\.integration\.' --ci --forceExit
         continue-on-error: true
 
-      # ── Testes de integração (banco real em memória) ──────────
       - name: Integration tests
         id: integration
-        # --testPathIgnorePatterns sobrescreve o jest.config.js (que bloqueia integration por padrão)
         run: npx jest --testPathIgnorePatterns='/node_modules/' --testPathPattern='\.integration\.' --ci --forceExit
         continue-on-error: true
 
-      # ── Typecheck ────────────────────────────────────────────
       - name: TypeScript typecheck
         id: typecheck
         run: npm run typecheck
         continue-on-error: true
 
-      # ── Health check do backend em produção ──────────────────
-      - name: Production health check
+      - name: Backend health check
         id: prod_health
+        working-directory: .
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 \
-            https://tcg-collector-app-production.up.railway.app/health || echo "000")
-          BODY=$(curl -s --max-time 10 \
-            https://tcg-collector-app-production.up.railway.app/health || echo '{"error":"timeout"}')
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://tcg-collector-app-production.up.railway.app/health || echo "000")
+          BODY=$(curl -s --max-time 10 https://tcg-collector-app-production.up.railway.app/health || echo '{"error":"timeout"}')
           echo "status=$STATUS" >> $GITHUB_OUTPUT
           echo "body=$BODY" >> $GITHUB_OUTPUT
-          if [ "$STATUS" != "200" ]; then
-            echo "❌ Backend em produção retornou HTTP $STATUS"
-            exit 1
-          fi
+          [ "$STATUS" != "200" ] && echo "Backend retornou HTTP $STATUS" && exit 1 || true
         continue-on-error: true
 
-      # ── Relatório de saúde no GitHub Summary ─────────────────
+      - name: Vercel frontend check
+        id: vercel_health
+        working-directory: .
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 15 https://tcg-collector-app.vercel.app || echo "000")
+          echo "status=$STATUS" >> $GITHUB_OUTPUT
+          [ "$STATUS" != "200" ] && echo "Vercel retornou HTTP $STATUS" && exit 1 || true
+        continue-on-error: true
+
       - name: Generate health report
         if: always()
+        working-directory: .
         run: |
-          UNIT_STATUS="${{ steps.unit.outcome }}"
-          INTEGRATION_STATUS="${{ steps.integration.outcome }}"
-          TYPECHECK_STATUS="${{ steps.typecheck.outcome }}"
-          PROD_STATUS="${{ steps.prod_health.outcome }}"
-          PROD_HTTP="${{ steps.prod_health.outputs.status }}"
-
-          icon() { [ "$1" = "success" ] && echo "✅" || echo "❌"; }
-
+          icon() { [ "$1" = "success" ] && echo "OK" || echo "FALHOU"; }
           cat >> $GITHUB_STEP_SUMMARY << SUMMARY
-          # 🏥 Bindex TCG — Relatório Diário de Saúde
-
+          # Bindex TCG - Relatorio Diario de Saude
           **Data:** $(date -u '+%d/%m/%Y %H:%M UTC')
-
           ## Resultados
-
-          | Verificação | Status |
+          | Verificacao | Status |
           |------------|--------|
-          | Testes unitários | $(icon $UNIT_STATUS) $UNIT_STATUS |
-          | Testes de integração | $(icon $INTEGRATION_STATUS) $INTEGRATION_STATUS |
-          | TypeScript typecheck | $(icon $TYPECHECK_STATUS) $TYPECHECK_STATUS |
-          | Backend em produção (HTTP) | $(icon $PROD_STATUS) HTTP $PROD_HTTP |
-
-          ## Detalhes do backend em produção
-          \`\`\`json
+          | Testes unitarios | $(icon ${{ steps.unit.outcome }}) |
+          | Testes de integracao | $(icon ${{ steps.integration.outcome }}) |
+          | TypeScript typecheck | $(icon ${{ steps.typecheck.outcome }}) |
+          | Backend Railway | $(icon ${{ steps.prod_health.outcome }}) HTTP ${{ steps.prod_health.outputs.status }} |
+          | Frontend Vercel | $(icon ${{ steps.vercel_health.outcome }}) HTTP ${{ steps.vercel_health.outputs.status }} |
+          ## Backend em producao
           ${{ steps.prod_health.outputs.body }}
-          \`\`\`
-
           ---
-          *Roda todo dia às 09:00 BRT. Para rodar manualmente: Actions → Daily Health Check → Run workflow.*
+          Roda todo dia as 09:00 BRT. Actions > Daily Health Check > Run workflow para rodar agora.
           SUMMARY
 
-      # ── Falha o job se qualquer check crítico falhou ─────────
       - name: Fail if critical checks failed
         if: always()
+        working-directory: .
         run: |
           FAILED=0
-          [ "${{ steps.unit.outcome }}" != "success" ] && echo "❌ Unit tests falharam" && FAILED=1
-          [ "${{ steps.integration.outcome }}" != "success" ] && echo "❌ Integration tests falharam" && FAILED=1
-          [ "${{ steps.prod_health.outcome }}" != "success" ] && echo "❌ Backend em produção fora d
+          [ "${{ steps.unit.outcome }}" != "success" ] && echo "Unit tests falharam" && FAILED=1
+          [ "${{ steps.integration.outcome }}" != "success" ] && echo "Integration tests falharam" && FAILED=1
+          [ "${{ steps.prod_health.outcome }}" != "success" ] && echo "Backend fora do ar" && FAILED=1
+          [ "${{ steps.vercel_health.outcome }}" != "success" ] && echo "Vercel fora do ar" && FAILED=1
+          [ $FAILED -eq 1 ] && exit 1 || echo "Todos os checks passaram"
