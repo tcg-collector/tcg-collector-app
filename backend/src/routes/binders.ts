@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { Binder, GridConfig } from '../models/Binder';
+import { Binder } from '../models/Binder';
 import { Card } from '../models/Card';
 import { requireAuth } from '../middleware/auth';
 import { validateBinderCreate, validateSlotUpdate } from '../validation/schemas';
@@ -16,12 +16,12 @@ async function populateBinder(b: InstanceType<typeof Binder>) {
     ? await Card.find({ _id: { $in: cardIds } }).select('name images prices set rarity number').lean()
     : [];
   const cardMap = Object.fromEntries(cards.map(c => [c._id as string, c]));
-  const binderObj = b.toObject() as any;
+  const binderObj = b.toObject() as unknown as { slots: Array<{ position: number; cardId: string | null; [key: string]: unknown }> } & Record<string, unknown>;
   return {
     ...binderObj,
-    slots: binderObj.slots.map((s: any) => ({
+    slots: binderObj.slots.map((s) => ({
       ...s,
-      card: s.cardId ? cardMap[s.cardId] ?? null : null,
+      card: s.cardId ? (cardMap[s.cardId as string] ?? null) : null,
     })),
   };
 }

@@ -3,6 +3,7 @@ name: Claude Code Review
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+    branches: [main, develop]
     paths:
       - 'app/**/*.ts'
       - 'app/**/*.tsx'

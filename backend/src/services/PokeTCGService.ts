@@ -72,6 +72,7 @@ export async function syncAllCards(startPage = 1): Promise<number> {
 
   console.log(`🔄 Iniciando sync completo de cartas (a partir da página ${startPage})...`);
 
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     let response;
     let retries = 0;
@@ -129,6 +130,7 @@ export async function syncPricesOnly(): Promise<number> {
 
   console.log('💰 Iniciando sync de preços...');
 
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     let response;
     let retries = 0;

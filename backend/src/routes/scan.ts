@@ -77,7 +77,7 @@ async function callAnthropicVision(base64: string, mediaType: string): Promise<s
 }
 
 // Busca candidatos na PokéTCG API usando número + nome para máxima precisão
-async function fetchCandidates(name: string, number?: string): Promise<any[]> {
+async function fetchCandidates(name: string, number?: string): Promise<Record<string, unknown>[]> {
   try {
     const apiKey = process.env.POKEMONTCG_API_KEY;
     const validKey = apiKey && apiKey !== 'sua_chave_aqui' ? apiKey : undefined;
@@ -93,7 +93,7 @@ async function fetchCandidates(name: string, number?: string): Promise<any[]> {
         headers,
         timeout: 15000,
       });
-      if (res.data?.data?.length > 0) return res.data.data;
+      if (res.data?.data?.length > 0) return res.data.data as Record<string, unknown>[];
     }
 
     // Estratégia 2: só pelo nome (fallback)
@@ -102,7 +102,7 @@ async function fetchCandidates(name: string, number?: string): Promise<any[]> {
       headers,
       timeout: 15000,
     });
-    return res.data?.data ?? [];
+    return (res.data?.data ?? []) as Record<string, unknown>[];
   } catch {
     return [];
   }
@@ -135,13 +135,14 @@ router.post('/', async (req: Request, res: Response) => {
     const tcgCards = await fetchCandidates(parsed.name, parsed.number);
 
     // Resolve no MongoDB (onde _id = pokéTCG id)
+    type TcgCard = { id: string; name: string; number: string; rarity?: string; set?: { id: string; name: string; series: string; images: { symbol: string; logo: string } }; images?: { small: string; large: string }; tcgplayer?: { prices?: Record<string, unknown> } };
     let candidates: object[] = [];
     if (tcgCards.length > 0) {
-      const ids = tcgCards.map((c: any) => c.id).filter(Boolean);
+      const ids = (tcgCards as TcgCard[]).map((c) => c.id).filter(Boolean);
       const dbCards = await Card.find({ _id: { $in: ids } }).lean();
       const dbMap = Object.fromEntries(dbCards.map(c => [c._id as string, c]));
 
-      candidates = tcgCards.map((c: any) => {
+      candidates = (tcgCards as TcgCard[]).map((c) => {
         if (dbMap[c.id]) return dbMap[c.id];
         return {
           _id: c.id,
