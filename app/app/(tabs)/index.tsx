@@ -37,7 +37,7 @@ export default function HomeScreen() {
       {loading ? (
         <ActivityIndicator color={Colors.gold} style={styles.loader} />
       ) : gainers.length === 0 ? (
-        <Text style={styles.empty}>Dados de mercado em breve</Text>
+        <Text style={styles.empty}>Histórico acumulando — disponível em alguns dias</Text>
       ) : (
         <FlatList
           horizontal
@@ -65,7 +65,7 @@ export default function HomeScreen() {
       {loading ? (
         <ActivityIndicator color={Colors.gold} style={styles.loader} />
       ) : topValue.length === 0 ? (
-        <Text style={styles.empty}>Dados de mercado em breve</Text>
+        <Text style={styles.empty}>Carregando dados de mercado...</Text>
       ) : (
         <FlatList
           horizontal
