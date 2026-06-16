@@ -10,6 +10,29 @@
 
 const BASE_URL = process.env.AGENT_TESTER_BASE_URL || 'https://tcg-collector-app-production.up.railway.app';
 
+// ─── Manifesto de rotas ───────────────────────────────────────────────────────
+// Atualizar este array ao adicionar ou remover qualquer rota da API.
+// covered: false → aparece como ⚠️ no relatório e quebra o CI (exit 1).
+
+const KNOWN_ROUTES: Array<{ method: string; path: string; description: string; covered: boolean }> = [
+  { method: 'GET',   path: '/health',                      description: 'Health check',                    covered: true },
+  { method: 'GET',   path: '/api/sets',                    description: 'Listar edições',                  covered: true },
+  { method: 'GET',   path: '/api/cards?name=Pikachu&limit=1', description: 'Listar cartas',                 covered: true },
+  { method: 'GET',   path: '/api/cards/:id',               description: 'Detalhe de carta',                covered: true },
+  { method: 'GET',   path: '/api/collections',             description: 'Listar coleção',                  covered: true },
+  { method: 'POST',  path: '/api/collections',             description: 'Adicionar carta à coleção',       covered: true },
+  { method: 'DELETE',path: '/api/collections/:id',         description: 'Remover carta da coleção',        covered: true },
+  { method: 'GET',   path: '/api/prices/exchange',         description: 'Cotação USD→BRL',                 covered: true },
+  { method: 'GET',   path: '/api/prices/:cardId',          description: 'Preço de carta',                  covered: true },
+  { method: 'GET',   path: '/api/binders',                 description: 'Listar binders',                  covered: true },
+  { method: 'POST',  path: '/api/binders',                 description: 'Criar binder',                    covered: true },
+  { method: 'GET',   path: '/api/binders/:id',             description: 'Detalhe de binder',               covered: true },
+  { method: 'DELETE',path: '/api/binders/:id',             description: 'Excluir binder',                  covered: true },
+  { method: 'PATCH', path: '/api/binders/:id/slots/:pos',  description: 'Colocar carta em slot',           covered: true },
+  { method: 'POST',  path: '/api/binders/:id/pages',       description: 'Adicionar página ao binder',      covered: true },
+  { method: 'POST',  path: '/api/scan',                    description: 'Scan IA por foto',                covered: true },
+];
+
 // ─── Gerar token fresco via Clerk ─────────────────────────────────────────────
 
 async function resolveToken(): Promise<string> {
@@ -294,6 +317,30 @@ function buildReport(): string {
     }
   }
 
+  // Seção de cobertura: compara manifesto com rotas efetivamente testadas
+  const testedPaths = new Set(results.map(r => `${r.method}:${r.route}`));
+  const uncovered = KNOWN_ROUTES.filter(r => !r.covered);
+  const notTested  = KNOWN_ROUTES.filter(r => r.covered && !testedPaths.has(`${r.method}:${r.path}`));
+
+  lines.push(``, `## 📊 Cobertura de rotas`, ``);
+  lines.push(`| Status | Método | Rota | Descrição |`);
+  lines.push(`|--------|--------|------|-----------|`);
+
+  for (const r of KNOWN_ROUTES) {
+    const isTested  = testedPaths.has(`${r.method}:${r.path}`);
+    const icon = !r.covered ? '⚠️ Não coberta' : isTested ? '✅ Testada' : '⏭️ Pulada';
+    lines.push(`| ${icon} | \`${r.method}\` | \`${r.path}\` | ${r.description} |`);
+  }
+
+  if (uncovered.length > 0) {
+    lines.push(``, `> ⚠️ **${uncovered.length} rota(s) com \`covered: false\`** — adicione testes no agent-tester.ts:`);
+    for (const r of uncovered) lines.push(`> - \`${r.method} ${r.path}\` — ${r.description}`);
+  }
+
+  if (notTested.length > 0) {
+    lines.push(``, `> ℹ️ **${notTested.length} rota(s) puladas** (sem dados para testar ou cleanup não executado)`);
+  }
+
   lines.push(`---`, `*Agent Tester do TCG Bindex*`);
   return lines.join('\n');
 }
@@ -314,9 +361,14 @@ function buildReport(): string {
       appendFileSync(summaryFile, report + '\n');
     }
 
-    const failed = results.filter(r => r.status === 'fail').length;
-    if (failed > 0) { console.error(`\n❌ ${failed} rota(s) falharam.`); process.exit(1); }
-    else { console.log(`\n✅ Todas as rotas testadas passaram.`); }
+    const failed    = results.filter(r => r.status === 'fail').length;
+    const uncovered = KNOWN_ROUTES.filter(r => !r.covered).length;
+
+    if (failed > 0)    console.error(`\n❌ ${failed} rota(s) falharam.`);
+    if (uncovered > 0) console.error(`\n⚠️  ${uncovered} rota(s) no manifesto com covered: false — adicione testes.`);
+
+    if (failed > 0 || uncovered > 0) process.exit(1);
+    else console.log(`\n✅ Todas as rotas testadas passaram. Cobertura: ${KNOWN_ROUTES.length}/${KNOWN_ROUTES.length}.`);
   } catch (err) {
     console.error('Erro fatal no Agent Tester:', err);
     process.exit(1);
