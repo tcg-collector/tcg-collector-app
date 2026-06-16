@@ -8,7 +8,7 @@ description: >
 
 # Feature — OS de Desenvolvimento TCG Bindex
 
-Fluxo completo: contexto → PRD → SDD → pronto para Plan Mode.
+Fluxo completo: contexto → PRD → SDD → Mockup (se UI) → Plan Mode.
 
 ## Argumento esperado
 
@@ -168,6 +168,7 @@ Após salvar o SDD, crie o **artifact de sessão** em `.claude/sessions/<slug>.m
 ## Checkpoints
 - [x] PRD criado e aprovado
 - [x] SDD criado e aprovado
+- [ ] Mockup aprovado (se feature tem UI)
 - [ ] Plan Mode executado e aprovado
 - [ ] Backend implementado
 - [ ] Frontend implementado
@@ -182,7 +183,28 @@ que permitam a uma sessão futura continuar sem reler os docs completos>
 - <data> — PRD e SDD aprovados, sessão iniciada
 ```
 
-Depois, **sem esperar instrução**, avance automaticamente para a Etapa 4.
+Depois, **sem esperar instrução**, avance automaticamente para a Etapa 3.5 (se houver mudança de UI) ou Etapa 4.
+
+---
+
+## Etapa 3.5 — Mockup de UI (obrigatório quando há mudança de tela)
+
+**Quando aplicar:** sempre que o SDD listar telas afetadas em "Frontend → Telas afetadas". Pule esta etapa apenas se a feature for puramente backend (novo endpoint, model, script) sem nenhuma mudança visual.
+
+Use `show_widget` para renderizar um mockup mobile fiel às telas afetadas. O mockup deve:
+- Respeitar o design system atual do app (fundo escuro `#111`, dourado `#d4af37`, superfícies `#1a1a1a`)
+- Mostrar o estado "cheio" (com dados de exemplo realistas — nomes de cartas, valores em BRL, badges)
+- Cobrir os componentes novos e as mudanças nos existentes
+- Se múltiplas telas forem afetadas, mostrar todas lado a lado
+
+Após renderizar, pergunte explicitamente:
+
+> Mockup acima. Está alinhado com o esperado? Ajusto antes de partir para a implementação.
+
+**Só avance para a Etapa 4 após aprovação explícita do mockup.** Registre no artifact de sessão:
+```
+- [x] Mockup aprovado
+```
 
 ---
 
