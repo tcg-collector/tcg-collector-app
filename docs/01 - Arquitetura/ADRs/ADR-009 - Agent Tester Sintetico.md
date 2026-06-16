@@ -17,8 +17,15 @@ Criar um **Agent Tester** — script TypeScript que executa chamadas HTTP reais 
 
 Componentes:
 - `backend/src/scripts/agent-tester.ts` — script principal
-- `.github/workflows/agent-tester.yml` — GitHub Action cron diário (09:15 BRT)
-- `CLERK_TEST_TOKEN` — GitHub Secret com JWT de conta de teste dedicada
+- `.github/workflows/agent-tester.yml` — GitHub Action com dois triggers:
+  - `workflow_run` após CI passar em `main` (E2E pós-merge)
+  - `schedule` cron diário às 09:15 BRT
+- Três GitHub Secrets: `CLERK_SECRET_KEY`, `CLERK_TEST_USER_ID`, `CLERK_FRONTEND_API_URL`
+
+Autenticação programática (sem login pelo app):
+1. `POST https://api.clerk.com/v1/sign_in_tokens` com `user_id` → sign-in token
+2. `POST https://<frontend_api>/v1/client/sign_ins` com o ticket → JWT fresco
+3. JWT usado em todas as rotas autenticadas no header `Authorization: Bearer`
 
 Estratégia de teste:
 1. Testa `/health` sem auth (baseline)
@@ -31,15 +38,16 @@ Estratégia de teste:
 
 ### Positivas
 - Cobre as 16 rotas com chamadas reais autenticadas
-- Captura falhas de integração que testes unitários não pegam (ex: Clerk expirado, MongoDB offline, regras de autorização quebradas)
+- Token JWT gerado programaticamente a cada execução — sem expiração manual
+- Captura falhas de integração que testes unitários não pegam (Clerk expirado, MongoDB offline, regras de autorização quebradas)
 - Relatório no GitHub Summary com tabela visual por rota
+- Nome do run `[Agent Tester] <commit>` facilita rastreabilidade
 - Dados de latência permitem identificar degradação de performance ao longo do tempo
 
 ### Negativas / trade-offs
 - Cria e deleta dados reais no banco de produção → exige conta de teste separada
 - `POST /api/scan` testado com imagem sintética 1×1 px → valida que a rota está acessível e autenticada, mas não valida o reconhecimento de cartas
-- Token Clerk (`CLERK_TEST_TOKEN`) expira periodicamente → manutenção manual necessária
-- Roda após o deploy (não bloqueia o deploy) → falhas são detectadas depois, não antes
+- Roda após o CI (não bloqueia o merge) → falhas de integração são detectadas logo após, não antes
 
 ## Alternativas consideradas
 
@@ -49,6 +57,7 @@ Estratégia de teste:
 | Postman/Newman | Boa opção, mas adiciona dependência externa; o script TypeScript já está no ecossistema do projeto |
 | Staging environment | Ideal no futuro, mas complexidade e custo altos para projeto solo em fase inicial |
 | Testes de integração no CI | Já existem (ADR-008), mas rodam contra banco in-memory, não contra produção real |
+| `CLERK_TEST_TOKEN` estático | Expira periodicamente, exige renovação manual; substituído por geração programática via Backend API |
 
 ---
 *Veja também: [[ADR-008 - Estrategia de Qualidade e Estabilidade]], [[Mapa de Rotas e Fluxos]], [[Agent Tester]]*

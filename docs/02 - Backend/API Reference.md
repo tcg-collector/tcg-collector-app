@@ -173,7 +173,8 @@ Identifica uma carta Pokémon por foto usando Claude Vision, avalia a condição
 
 **Estratégia de busca**: primeiro tenta `name + number` (preciso), depois fallback por nome apenas.  
 **Modelo IA**: `claude-opus-4-5` via Anthropic API (vision).  
-**Limite de imagem**: 15 MB.
+**Limite de imagem**: 15 MB.  
+**Rate limit**: 10 requisições/minuto por usuário (chave = `userId` ou IP como fallback). Retorna `429` com header `Retry-After` quando excedido.
 
 ---
 
