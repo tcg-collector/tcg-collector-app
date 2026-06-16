@@ -178,6 +178,28 @@ async function checkRoute(
   }
 }
 
+// ─── Warm-up: aguarda Railway estar pronto ────────────────────────────────────
+
+async function waitForServer(maxWaitMs = 120_000): Promise<void> {
+  const deadline = Date.now() + maxWaitMs;
+  let attempt = 0;
+  while (Date.now() < deadline) {
+    attempt++;
+    try {
+      const res = await fetch(`${BASE_URL}/health`, { signal: AbortSignal.timeout(10_000) });
+      if (res.ok) {
+        console.log(`✅ Servidor respondeu após ${attempt} tentativa(s)`);
+        return;
+      }
+    } catch {
+      // ainda subindo
+    }
+    console.log(`⏳ Warm-up tentativa ${attempt} — aguardando Railway...`);
+    await new Promise(r => setTimeout(r, 10_000));
+  }
+  throw new Error(`Servidor não respondeu após ${maxWaitMs / 1000}s`);
+}
+
 // ─── Sequência de testes ──────────────────────────────────────────────────────
 
 async function runAll(token: string) {
@@ -375,6 +397,7 @@ function buildReport(): string {
 
 (async () => {
   try {
+    await waitForServer();
     const token = await resolveToken();
     await runAll(token);
     const report = buildReport();
