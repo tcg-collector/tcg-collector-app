@@ -30,10 +30,11 @@ QUA/QUI (após aprovação) → Agent Builder → executa sprint
 
 ---
 
-## Agent Tester ✅ (em produção)
+## Agent Tester ✅ (em produção — skill expandido)
 
 **Status:** rodando. Cobre 21 rotas após cada merge em `main`.
-**Evolução planejada:** alimentar o Planner com falhas detectadas.
+**Skill:** `/agent-tester` — verifica falhas, audita cobertura de rotas e telas, gera itens de backlog para o Planner.
+**Findings:** `docs/05 - Qualidade/tester-findings/TESTER-YYYY-WW.md` — lido pelo Planner na montagem do sprint.
 
 ---
 
