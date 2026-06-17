@@ -30,30 +30,51 @@ Se `docs/inteligência/` estiver vazio, prossiga normalmente — é a primeira e
 
 ---
 
-## Passo 2 — Varredura dos concorrentes conhecidos
+## Passo 2 — Varredura dos concorrentes conhecidos (paralela)
 
-Para cada um dos 9 concorrentes abaixo, faça **3 buscas** usando WebSearch:
+Divida os 9 concorrentes em 3 grupos e dispare **3 subagentes em paralelo** usando a ferramenta `Agent` com `run_in_background: true`. Aguarde todos concluírem antes de prosseguir para o Passo 3.
 
-### Concorrentes a monitorar
+### Formato do prompt para cada subagente
 
-| # | App | Busca 1 — Reddit/fóruns | Busca 2 — Reclamações | Busca 3 — Elogios/bench |
-|---|-----|------------------------|----------------------|------------------------|
-| 1 | HoloDex | `HoloDex app pokemon review site:reddit.com` | `HoloDex app complaints negative reviews 2026` | `HoloDex app best features praised` |
-| 2 | Collectr | `Collectr card app review site:reddit.com` | `Collectr app problems issues users` | `Collectr app what users love` |
-| 3 | Dex TCG Collectors | `Dex TCG app review reddit 2026` | `Dex TCG app complaints negative` | `Dex TCG app praised features` |
-| 4 | PokéCardex | `PokéCardex app review site:reddit.com` | `PokéCardex negative reviews problems` | `PokéCardex best features review` |
-| 5 | Pokéllector | `Pokellector app review site:reddit.com` | `Pokellector app problems user complaints` | `Pokellector app what users love` |
-| 6 | TCGBinder | `TCGBinder app review reddit` | `TCGBinder app issues negative feedback` | `TCGBinder praised features` |
-| 7 | Binder TCG Sports | `Binder TCG Sports Cards app review reddit` | `Binder TCG app complaints 2026` | `Binder TCG app positive reviews` |
-| 8 | Card Dex Oficial | `Pokemon TCG Card Dex official app review reddit` | `Pokemon TCG Card Dex app problems complaints` | `Pokemon TCG Card Dex praised features` |
-| 9 | MonPrice TCG | `MonPrice TCG app review reddit` | `MonPrice TCG app complaints issues` | `MonPrice TCG app best features` |
+Cada subagente deve receber exatamente este prompt (substituindo os concorrentes do grupo):
 
-### O que extrair de cada concorrente
+```
+Você é um pesquisador de mercado de apps TCG. Para cada concorrente listado abaixo,
+faça exatamente 3 buscas via WebSearch e extraia os dados pedidos.
 
-- **Reclamações recorrentes** (bugs, UX ruim, features ausentes, preço, crashes)
-- **Elogios recorrentes** (o que fazem bem — para benchmark)
-- **Volume percebido** (alto / médio / baixo — baseado na quantidade de posts encontrados)
-- **Algo novo** (lançamento de feature, mudança de preço, update importante)
+CONCORRENTES DO GRUPO: [lista do grupo]
+
+Para cada concorrente, faça:
+  Busca 1: "[App] app pokemon review site:reddit.com"
+  Busca 2: "[App] app complaints negative reviews 2026"
+  Busca 3: "[App] app best features praised"
+
+Para cada concorrente, retorne exatamente neste formato:
+### [Nome do App]
+- Reclamação principal: [bugs, UX ruim, features ausentes, preço, crashes — ou "sem dados"]
+- Elogio principal: [o que fazem bem — ou "sem dados"]
+- Volume: alto (10+ menções) / médio (3-9) / baixo (1-2) / sem dados
+- Novidade: [lançamento, update, mudança de preço — ou "nenhuma"]
+```
+
+### Grupos de concorrentes
+
+**Subagente A — Grupo 1:**
+- HoloDex · Collectr · Dex TCG Collectors
+
+**Subagente B — Grupo 2:**
+- PokéCardex · Pokéllector · TCGBinder
+
+**Subagente C — Grupo 3:**
+- Binder TCG Sports · Card Dex Oficial · MonPrice TCG
+
+### Instrução de execução
+
+1. Dispare os 3 subagentes **simultaneamente** (todos com `run_in_background: true`)
+2. Aguarde os 3 retornarem
+3. Consolide os resultados dos 3 grupos em uma única tabela para o Passo 4
+
+**Tempo esperado:** ~1/3 do tempo sequencial (paralelo vs. 27 buscas em série)
 
 ---
 
