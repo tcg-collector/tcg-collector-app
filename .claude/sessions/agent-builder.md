@@ -14,7 +14,7 @@
 - [x] SDD criado e aprovado
 - [x] Plan Mode executado e aprovado
 - [x] Skill file implementado (.claude/commands/agent-builder.md)
-- [ ] /ship executado com sucesso
+- [x] /ship executado com sucesso — PR #29 merged 2026-06-17T21:44:00Z
 
 ## Contexto para próxima sessão
 - Agent é skill Claude Code (.md em .claude/commands/), não endpoint nem tela

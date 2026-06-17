@@ -32,20 +32,22 @@ Se não houver relatório do Produteiro desta semana, use o mais recente e sinal
 
 ---
 
-## Passo 2 — Falhas do Agent Tester
+## Passo 2 — Findings do Agent Tester
 
-Verifique o último run do Agent Tester via GitHub CLI:
+Primeiro, verifique se há um findings recente em `docs/05 - Qualidade/tester-findings/`:
+
+- Se houver `TESTER-[semana atual ou anterior].md`: leia e extraia os itens de backlog gerados
+- Itens com 🔴 Bug entram automaticamente no sprint como **item prioritário #1**, acima de qualquer ICE
+- Itens com 🟡 e 🟠 entram no sprint se houver capacidade disponível
+
+Se não houver findings recente, verifique diretamente via GitHub CLI:
 
 ```bash
 gh run list --workflow=agent-tester.yml --limit 1 --json databaseId,conclusion,url,displayTitle
 ```
 
 - Se `conclusion == "success"`: registre "Tester: 21/21 rotas ok ✅"
-- Se `conclusion == "failure"`: busque o log e identifique quais rotas falharam:
-  ```bash
-  gh run view [databaseId] --log-failed
-  ```
-  Bugs do Tester entram automaticamente no sprint como **item prioritário #1**, acima de qualquer ICE.
+- Se `conclusion == "failure"`: registre como bug prioritário e sugira rodar `/agent-tester` para análise completa
 
 Se o `gh` não estiver disponível ou falhar, registre "Tester: status não disponível" e continue.
 
