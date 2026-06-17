@@ -12,7 +12,7 @@ on:
 
 jobs:
   agent-tester:
-    name: Agent Tester — 16 Rotas API
+    name: Agent Tester — 21 Rotas API
     runs-on: ubuntu-latest
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     defaults:
