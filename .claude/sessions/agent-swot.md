@@ -21,10 +21,10 @@
 - [x] Plan Mode executado e aprovado
 - [x] Skill file implementado (.claude/commands/agent-swot.md)
 - [x] docs/inteligência/ criado com .gitkeep
-- [ ] Teste manual: /agent-swot roda sem erros
-- [ ] Notion atualizado após run de teste
-- [ ] /schedule configurado para segunda-feira
-- [ ] /ship executado com sucesso
+- [x] Teste manual: /agent-swot roda sem erros — 2026-06-17 ✅
+- [x] Notion atualizado após run de teste — 2026-06-17 ✅
+- [x] /schedule configurado para segunda-feira — 2026-06-17 ✅
+- [x] /ship executado com sucesso — PR #26 merged 2026-06-17T18:55:43Z
 
 ## Decisões técnicas chave
 - Agent é um Claude Code skill (.md em .claude/commands/), não endpoint de backend
