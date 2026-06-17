@@ -16,7 +16,7 @@
 - [x] Skill file implementado (.claude/commands/agent-planner.md)
 - [x] docs/sprints/ criado com .gitkeep
 - [x] /schedule configurado para quarta-feira — toda quarta 09:00 BRT
-- [ ] /ship executado com sucesso
+- [x] /ship executado com sucesso — PR #28 merged 2026-06-17T21:18:51Z
 
 ## Contexto para próxima sessão
 - Agent é skill Claude Code (.md em .claude/commands/), não endpoint nem tela
