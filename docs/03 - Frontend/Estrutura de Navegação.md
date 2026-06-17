@@ -213,4 +213,17 @@ Configurado em `app/.env` (não commitado).
 
 ---
 
+## Adaptações web vs mobile
+
+| Feature | Mobile | Web |
+|---------|--------|-----|
+| Token cache | `expo-secure-store` | `localStorage` |
+| Câmera | `expo-camera` (CameraView) | `<input type="file">` + FileReader |
+| Galeria | `expo-image-picker` | `<input type="file" accept="image/*">` |
+| Alerts | `Alert.alert()` | `window.alert()` / `window.confirm()` |
+
+Usar `Platform.OS === 'web'` para condicionais — nunca detectar por feature ou user agent.
+
+---
+
 *Veja também: [[../02 - Backend/API Reference]] · [[../01 - Arquitetura/Visão Geral do Sistema]]*

@@ -77,58 +77,6 @@ cd app && npm run lint             # ESLint
 
 ---
 
-## API — 21 rotas
-
-### Pública
-| Método | Rota | Descrição |
-|--------|------|-----------|
-| GET | `/health` | Health check |
-
-### Autenticadas (`Authorization: Bearer <clerk_jwt>`)
-| Método | Rota | Descrição |
-|--------|------|-----------|
-| GET | `/api/cards` | Lista cartas (`name`, `setId`, `page`, `limit`) |
-| GET | `/api/cards/:id` | Detalhe de carta |
-| GET | `/api/sets` | Lista edições disponíveis |
-| GET | `/api/collections` | Coleção avulsa do usuário |
-| POST | `/api/collections` | Adiciona carta à coleção |
-| DELETE | `/api/collections/:id` | Remove carta da coleção |
-| GET | `/api/collections/top-gainers` | Top valorizações da coleção (`days=7\|30\|60`, `limit`) |
-| GET | `/api/collections/top-value` | Cartas mais valiosas da coleção (`limit`) |
-| GET | `/api/collections/summary` | Valor total + delta da coleção (`days=7\|30\|60`) |
-| GET | `/api/binders` | Lista binders do usuário |
-| POST | `/api/binders` | Cria binder |
-| GET | `/api/binders/:id` | Detalhe de binder com slots populados |
-| DELETE | `/api/binders/:id` | Exclui binder |
-| PATCH | `/api/binders/:id/slots/:position` | Coloca/move carta em slot |
-| POST | `/api/binders/:id/pages` | Adiciona página ao binder |
-| GET | `/api/prices/exchange` | Cotação USD→BRL atual |
-| GET | `/api/prices/:cardId` | Preço de carta (TCGPlayer market) |
-| GET | `/api/prices/top-gainers` | Top valorizações globais (`days=7\|30\|60`, `limit`) |
-| GET | `/api/prices/top-value` | Cartas mais valiosas globais (`limit`) |
-| POST | `/api/scan` | Scan IA por foto — **rate limit 10/min, timeout 45s** |
-
----
-
-## Modelos de dados
-
-**Card** — `_id` é o ID da PokéTCG API (ex: `"base1-4"`), **não** ObjectId gerado pelo Mongo.
-Campos: `name`, `number`, `set{id,name,series,images}`, `images{small,large}`, `prices{normal?,holofoil?,reverseHolofoil?}` cada com `{low,mid,high,market}`, `lastPriceSyncAt`.
-
-**Binder** — `userId` (Clerk ID), `name`, `coverImage`, `gridConfig` (`2x2|3x3|3x4|4x4`), `slots[]` com `position` (0-indexed), `cardId` (ref Card._id), `condition`.
-
-**Collection** — `userId`, `cardId`, `condition`, `addedAt`.
-
-**PriceHistory** — `cardId` (string, ref Card._id), `date` (Date, dia truncado), `market` (number USD). Índice único `{ cardId, date }`. TTL 60 dias. Populado pelo cron de sync de preços (06:00 UTC).
-
-**GridConfig válidos:** `2x2` | `3x3` | `3x4` | `4x4` — nunca inventar outros valores.
-
-**Condições válidas:** `NM` | `LP` | `MP` | `HP` | `DMG`
-
-**Multiplicadores de condição:** NM 100% · LP 80% · MP 60% · HP 40% · DMG 20%
-
----
-
 ## Regras críticas — evitam bugs e quebras de produção
 
 ### Auth
@@ -138,7 +86,7 @@ Campos: `name`, `number`, `set{id,name,series,images}`, `images{small,large}`, `
 
 ### CORS
 - Origins permitidas estão hardcoded em `backend/src/index.ts`: `tcgbindex.app`, `tcg-collector-app.vercel.app`, `localhost:8081`, `localhost:8083`
-- Ao adicionar novo domínio (ex: domínio customizado), atualizar essa lista E fazer deploy no Railway
+- Ao adicionar novo domínio, atualizar essa lista E fazer deploy no Railway
 
 ### Body/imagem
 - Limite de payload: **15MB** (`express.json({ limit: '15mb' })`)
@@ -148,9 +96,13 @@ Campos: `name`, `number`, `set{id,name,series,images}`, `images{small,large}`, `
 - `Card._id` é string (ID do PokéTCG), não ObjectId — nunca usar `new mongoose.Types.ObjectId()` para cartas
 - Sempre popular slots com `.populate('cardId')` ao retornar binders com cartas
 
+### Modelos — valores válidos
+- **GridConfig:** `2x2` | `3x3` | `3x4` | `4x4` — nunca inventar outros valores
+- **Condições:** `NM` | `LP` | `MP` | `HP` | `DMG`
+- **Multiplicadores:** NM 100% · LP 80% · MP 60% · HP 40% · DMG 20%
+
 ### Testes
 - Testes de integração usam **MongoDB in-memory** (`mongodb-memory-server`) — nunca apontam para Atlas
-- `npm run test:integration` requer `mongodb-memory-server` instalado no backend
 
 ### Scan IA
 - Modelo: `claude-opus-4-5` — não trocar sem testar impacto na qualidade do OCR
@@ -159,6 +111,10 @@ Campos: `name`, `number`, `set{id,name,series,images}`, `images{small,large}`, `
 
 ### Cron Railway
 - Sync de preços: todo dia **06:00 UTC (03:00 BRT)** — não alterar horário sem verificar Railway timeout
+
+### Web vs Mobile
+- Usar `Platform.OS === 'web'` para condicionais — nunca detectar por feature ou user agent
+- Detalhes das adaptações: `docs/03 - Frontend/Estrutura de Navegação.md`
 
 ---
 
@@ -171,32 +127,7 @@ commit → push HEAD:develop → CI (typecheck+lint+tests backend+frontend) → 
 - CI roda em **paralelo**: backend job + frontend job simultaneamente
 - `gh` CLI no Windows precisa de recarga de PATH — detalhes em `.claude/commands/ship.md`
 - Railway e Vercel deployam automaticamente ao merge em `main`
-
----
-
-## Adaptações web vs mobile
-
-| Feature | Mobile | Web |
-|---------|--------|-----|
-| Token cache | `expo-secure-store` | `localStorage` |
-| Câmera | `expo-camera` (CameraView) | `<input type="file">` + FileReader |
-| Galeria | `expo-image-picker` | `<input type="file" accept="image/*">` |
-| Alerts | `Alert.alert()` | `window.alert()` / `window.confirm()` |
-
-Usar `Platform.OS === 'web'` para condicionais — nunca detectar por feature ou user agent.
-
----
-
-## Pipeline de qualidade
-
-| Camada | Ferramenta | Quando roda |
-|--------|-----------|-------------|
-| Typecheck | `tsc --noEmit` | CI + local antes de commitar |
-| Lint | ESLint + @typescript-eslint | CI + local |
-| Testes integração | Jest + MongoDB in-memory | CI |
-| Health check | GitHub Actions cron 08h BRT | Diário |
-| Code review IA | Claude Haiku | Cada PR |
-| E2E sintético | `agent-tester.ts` (16 rotas) | Após CI passar em main |
+- **Após merge:** atualizar a seção "Estado atual" abaixo para refletir o que entrou em produção
 
 ---
 
@@ -216,25 +147,32 @@ EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_...
 
 ---
 
-## Fase atual — Fase 2 (Produção & Web)
+## Estado atual
 
-✅ Backend Railway · ✅ Vercel tcgbindex.app · ✅ Clerk Production · ✅ CI/CD  
-⏳ App Store + Play Store (EAS Build — próximo passo da Fase 2)
+### ✅ Em produção
+Backend Railway · Vercel tcgbindex.app · Clerk Production · CI/CD · Agent Tester (21 rotas) · Histórico de preços · Inteligência de valor na coleção · Scan IA
 
-**Fase 3 planejada:** alertas de preço, histórico de preços, comunidade, Sentry, Playwright E2E, planos pagos.
+### ⏳ Fase 2 — backlog
+- Gráfico de histórico de preço na tela de carta (backend pronto)
+- Sentry — monitoramento de erros
+- UX/UI — auditoria e ciclo de melhorias contínuas
+- Variantes e idiomas de cartas (foil, reverse, promo, JP/ZH) — depende de POC
+- Sistema de agents: SWOT · Produteiro · Planner · Builder
+
+### 🔭 Fase 3 — planejado
+Wishlist + alertas de preço · Bindex Pro (monetização) · EAS Build + lojas · Google OAuth web · Comunidade/marketplace
 
 ---
 
-## ADRs (`docs/01 - Arquitetura/ADRs/`)
+## Documentação completa
 
-| ADR | Decisão |
-|-----|---------|
-| 001 | React Native + Expo (cross-platform sem nativo local) |
-| 002 | MongoDB Atlas M0 (schema flexível + gratuito) |
-| 003 | EAS Build sem nativo local (sem Mac necessário) |
-| 004 | TypeScript strict em todo o projeto |
-| 005 | expo-router para navegação file-based |
-| 006 | Clerk Production Instance (não Development) |
-| 007 | Sync de cartas via PokéTCG API com cron diário |
-| 008 | CI + coverage + health check como estratégia de qualidade |
-| 009 | Agent Tester sintético com JWT programático via Clerk Backend API |
+| Tópico | Onde ler |
+|--------|----------|
+| API — 21 rotas | `docs/05 - Qualidade/Mapa de Rotas e Fluxos.md` |
+| Modelos de dados | `docs/02 - Backend/Modelos de Dados.md` |
+| Adaptações web vs mobile | `docs/03 - Frontend/Estrutura de Navegação.md` |
+| Pipeline de qualidade | `docs/05 - Qualidade/` |
+| ADRs | `docs/01 - Arquitetura/ADRs/` |
+| Agents — backlog e spec | `docs/05 - Qualidade/Agents-Backlog.md` |
+| Sentry — plano | `docs/05 - Qualidade/Sentry-Plan.md` |
+| Análise competitiva | Notion — "Análise Competitiva" (via MCP) |
