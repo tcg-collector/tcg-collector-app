@@ -16,7 +16,7 @@
 - [x] Skill file implementado (.claude/commands/agent-produteiro.md)
 - [x] docs/04 - Produto/hipoteses/ criado com .gitkeep
 - [x] /schedule configurado para terça-feira — toda terça 09:00 BRT
-- [ ] /ship executado com sucesso
+- [x] /ship executado com sucesso — PR #27 merged 2026-06-17T20:50:28Z
 
 ## Contexto para próxima sessão
 - Agent é skill Claude Code (.md em .claude/commands/), não endpoint nem tela
