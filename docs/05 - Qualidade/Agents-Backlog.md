@@ -1,6 +1,6 @@
 # Sistema de Agents — Backlog (Fase 2)
 
-Status: **backlog** — não iniciado. Executar após estabilização da Fase 2 core.
+Status: **em produção** — todos os agents implementados e shiped (2026-W25).
 
 ## Notion — links de referência
 
@@ -38,7 +38,7 @@ QUA/QUI (após aprovação) → Agent Builder → executa sprint
 
 ---
 
-## Agent SWOT
+## Agent SWOT ✅ (em produção — PR #26)
 
 **Frequência:** toda segunda-feira
 **Output:** relatório semanal + atualização da página "Análise Competitiva" no Notion
@@ -71,7 +71,7 @@ Ver seção "Notion como RAG" abaixo.
 
 ---
 
-## Agent Produteiro
+## Agent Produteiro ✅ (em produção — PR #27)
 
 **Frequência:** toda terça-feira (dia seguinte ao SWOT)
 **Output:** hipóteses de features + mockups (quando aplicável), salvas em `docs/04 - Produto/hipoteses/`
@@ -94,7 +94,7 @@ Ver seção "Notion como RAG" abaixo.
 
 ---
 
-## Agent Planner
+## Agent Planner ✅ (em produção — PR #28)
 
 **Frequência:** toda quarta-feira
 **Output:** proposta de sprint semanal + PRDs/SDDs rascunho — **requer aprovação de Matheus antes de executar**
@@ -114,7 +114,7 @@ Matheus revisa e aprova/rejeita itens individualmente. Somente após aprovação
 
 ---
 
-## Agent Builder
+## Agent Builder ✅ (em produção — PR #29)
 
 **Frequência:** quarta ou quinta, após aprovação da sprint pelo Planner
 **Output:** código em produção via pipeline develop → CI → PR → main

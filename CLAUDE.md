@@ -150,14 +150,20 @@ EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_...
 ## Estado atual
 
 ### ✅ Em produção
-Backend Railway · Vercel tcgbindex.app · Clerk Production · CI/CD · Agent Tester (21 rotas) · Histórico de preços · Inteligência de valor na coleção · Scan IA
+Backend Railway · Vercel tcgbindex.app · Clerk Production · CI/CD · Histórico de preços · Inteligência de valor na coleção · Scan IA
+
+**Sistema de agents (pipeline semanal):**
+- `/agent-swot` — inteligência competitiva toda segunda (output: `docs/inteligência/SWOT-YYYY-WW.md`)
+- `/agent-produteiro` — priorização ICE toda terça (output: `docs/04 - Produto/hipoteses/PRODUTEIRO-YYYY-WW.md`)
+- `/agent-planner` — proposta de sprint toda quarta, aguarda aprovação (output: `docs/sprints/SPRINT-YYYY-WW.md`)
+- `/agent-builder` — executa sprint aprovado com regras de risco (acionado pelo Planner)
+- `/agent-tester` — audita cobertura, detecta bugs e gera backlog proativo (output: `docs/05 - Qualidade/tester-findings/TESTER-YYYY-WW.md`)
 
 ### ⏳ Fase 2 — backlog
 - Gráfico de histórico de preço na tela de carta (backend pronto)
 - Sentry — monitoramento de erros
 - UX/UI — auditoria e ciclo de melhorias contínuas
 - Variantes e idiomas de cartas (foil, reverse, promo, JP/ZH) — depende de POC
-- Sistema de agents: SWOT · Produteiro · Planner · Builder
 
 ### 🔭 Fase 3 — planejado
 Wishlist + alertas de preço · Bindex Pro (monetização) · EAS Build + lojas · Google OAuth web · Comunidade/marketplace
