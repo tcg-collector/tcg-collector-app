@@ -206,28 +206,28 @@ export default function CollectionScreen() {
       {/* Carrosséis de inteligência — visíveis quando há cartas */}
       {totalAllCards > 0 && !loadingMarket && (
         <>
-          {gainers.length > 0 && (
-            <>
-              <View style={styles.marketSectionHeader}>
-                <Text style={styles.marketSectionTitle}>Mais valorizadas</Text>
-                <Text style={styles.marketSectionHint}>sua coleção · 7d</Text>
-              </View>
-              <FlatList
-                horizontal
-                data={gainers}
-                keyExtractor={item => item.card._id}
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.marketCarousel}
-                renderItem={({ item }) => (
-                  <MarketCardItem
-                    card={item.card}
-                    priceBRL={displayRate ? formatBRL(item.marketNow * displayRate) : '—'}
-                    badge={`+${item.deltaPct.toFixed(0)}%`}
-                    onPress={() => router.push(`/card/${item.card._id}`)}
-                  />
-                )}
-              />
-            </>
+          <View style={styles.marketSectionHeader}>
+            <Text style={styles.marketSectionTitle}>Mais valorizadas</Text>
+            <Text style={styles.marketSectionHint}>sua coleção · 7d</Text>
+          </View>
+          {gainers.length > 0 ? (
+            <FlatList
+              horizontal
+              data={gainers}
+              keyExtractor={item => item.card._id}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.marketCarousel}
+              renderItem={({ item }) => (
+                <MarketCardItem
+                  card={item.card}
+                  priceBRL={displayRate ? formatBRL(item.marketNow * displayRate) : '—'}
+                  badge={`+${item.deltaPct.toFixed(0)}%`}
+                  onPress={() => router.push(`/card/${item.card._id}`)}
+                />
+              )}
+            />
+          ) : (
+            <Text style={styles.marketEmpty}>Histórico acumulando — disponível em alguns dias</Text>
           )}
 
           {topValue.length > 0 && (
@@ -641,4 +641,5 @@ const styles = StyleSheet.create({
   marketSectionTitle: { fontSize: 16, fontWeight: '700', color: Colors.snow },
   marketSectionHint:  { fontSize: 12, color: Colors.ash },
   marketCarousel:     { paddingHorizontal: 16, gap: 12 },
+  marketEmpty:        { paddingHorizontal: 20, color: Colors.ash, fontSize: 13, marginBottom: 8 },
 });

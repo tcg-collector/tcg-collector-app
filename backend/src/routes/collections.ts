@@ -1,10 +1,27 @@
 import { Router, Request, Response } from 'express';
 import { UserCollection } from '../models/UserCollection';
+import { Binder } from '../models/Binder';
 import { Card } from '../models/Card';
 import { PriceHistory } from '../models/PriceHistory';
 import { requireAuth } from '../middleware/auth';
 import { validateCollectionCreate } from '../validation/schemas';
 import { ALLOWED_DAYS, calcGainers, getBestMarket, startOfDay } from '../services/priceUtils';
+
+// Retorna todos os cardIds únicos do usuário: avulso + binders
+async function getAllUserCardIds(userId: string): Promise<string[]> {
+  const [looseItems, binders] = await Promise.all([
+    UserCollection.find({ userId }).select('cardId'),
+    Binder.find({ userId }).select('slots'),
+  ]);
+  const ids = new Set<string>();
+  for (const item of looseItems) ids.add(String(item.cardId));
+  for (const binder of binders) {
+    for (const slot of binder.slots) {
+      if (slot.cardId) ids.add(String(slot.cardId));
+    }
+  }
+  return [...ids];
+}
 
 const router = Router();
 
@@ -38,10 +55,8 @@ router.get('/top-gainers', async (req: Request, res: Response) => {
   }
 
   try {
-    const items = await UserCollection.find({ userId: req.userId }).select('cardId condition');
-    const cardIds = [...new Set(items.map(i => String(i.cardId)))];
+    const cardIds = await getAllUserCardIds(req.userId!);
     const results = await calcGainers(cardIds, days, limit);
-    const conditionMap = new Map(items.map(i => [String(i.cardId), i.condition]));
     res.json({
       data: results.map(r => ({
         card: r.card,
@@ -49,7 +64,6 @@ router.get('/top-gainers', async (req: Request, res: Response) => {
         marketThen: r.marketThen,
         deltaPct: r.deltaPct,
         deltaAbs: r.deltaAbs,
-        condition: conditionMap.get(String(r.card._id)),
       })),
     });
   } catch {
@@ -67,24 +81,19 @@ router.get('/top-value', async (req: Request, res: Response) => {
   }
 
   try {
-    const items = await UserCollection.find({ userId: req.userId })
-      .populate<{ cardId: InstanceType<typeof Card> }>('cardId')
-      .select('cardId condition');
+    const cardIds = await getAllUserCardIds(req.userId!);
+    const cards = await Card.find({ _id: { $in: cardIds } })
+      .select('name number set images prices')
+      .lean();
 
-    const withMarket = items
-      .map(i => {
-        const card = i.cardId as InstanceType<typeof Card>;
-        const market = card && card.prices ? getBestMarket(card.prices as Parameters<typeof getBestMarket>[0]) : null;
-        return { card, market, condition: i.condition };
-      })
-      .filter(r => r.market !== null) as { card: InstanceType<typeof Card>; market: number; condition: string }[];
-
-    const top = withMarket
+    const withMarket = cards
+      .map(card => ({ card, market: getBestMarket(card.prices as Parameters<typeof getBestMarket>[0]) }))
+      .filter((r): r is { card: typeof cards[number]; market: number } => r.market !== null && r.market > 0)
       .sort((a, b) => b.market - a.market)
       .slice(0, limit)
-      .map(r => ({ card: r.card, market: r.market, condition: r.condition }));
+      .map(r => ({ card: r.card, market: r.market }));
 
-    res.json({ data: top });
+    res.json({ data: withMarket });
   } catch {
     res.status(500).json({ error: 'Erro ao buscar cartas mais valiosas da coleção' });
   }
