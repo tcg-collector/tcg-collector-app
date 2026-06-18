@@ -155,12 +155,12 @@ Backend Railway · Vercel tcgbindex.app · Clerk Production · CI/CD · Históri
 **Sistema de agents (pipeline semanal):**
 - `@agent-swot` — inteligência competitiva toda segunda (`.claude/agents/agent-swot.md` — contexto isolado)
 - `@agent-produteiro` — priorização ICE toda terça (`.claude/agents/agent-produteiro.md` — contexto isolado)
-- `/agent-planner` — proposta de sprint toda quarta, aguarda aprovação (output: `docs/sprints/SPRINT-YYYY-WW.md`)
+- `@agent-planner` — proposta de sprint toda quarta, aprovação file-based (`.claude/agents/agent-planner.md` — contexto isolado)
 - `/agent-builder` — executa sprint aprovado com regras de risco (acionado pelo Planner)
-- `/agent-tester` — audita cobertura, detecta bugs e gera backlog proativo (output: `docs/05 - Qualidade/tester-findings/TESTER-YYYY-WW.md`)
+- `@agent-tester` — audita cobertura, detecta bugs e gera backlog proativo (`.claude/agents/agent-tester.md` — contexto isolado)
 
 ### ⏳ Backlog e roadmap
-Itens priorizados, hipóteses e histórico de entregues: `.claude/BACKLOG.md`
+Itens priorizados, hipóteses e histórico de entregues: `.claude/backlog.md`
 
 ---
 
@@ -174,8 +174,8 @@ Itens priorizados, hipóteses e histórico de entregues: `.claude/BACKLOG.md`
 | Pipeline de qualidade | `docs/05 - Qualidade/` |
 | ADRs | `docs/01 - Arquitetura/ADRs/` |
 | PRDs e SDDs | `docs/specs/PRDs/` e `docs/specs/SDDs/` |
-| Backlog e roadmap | `.claude/BACKLOG.md` |
-| Rotinas agendadas | `.claude/SCHEDULES.md` |
+| Backlog e roadmap | `.claude/backlog.md` |
+| Rotinas agendadas | `.claude/schedules.md` |
 | Agents — specs | `docs/specs/PRDs/agent-*.md` |
 | Sentry — plano | `docs/05 - Qualidade/Sentry-Plan.md` |
 | Análise competitiva | Notion — "Análise Competitiva" (via MCP) |

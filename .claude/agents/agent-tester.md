@@ -5,7 +5,7 @@ description: >
   audita cobertura de rotas backend e telas frontend, gera findings estruturados
   e registra bugs e gaps no BACKLOG com ICE estimado. Roda autônomo — sem interação
   humana. Para aplicar correções interativamente, use /agent-tester (skill).
-  Output: docs/05 - Qualidade/tester-findings/TESTER-YYYY-WW.md e .claude/BACKLOG.md.
+  Output: docs/05 - Qualidade/tester-findings/TESTER-YYYY-WW.md e .claude/backlog.md.
 tools:
   - Read
   - Glob
@@ -45,7 +45,7 @@ Código local
 
 Agent Tester (este agent)
   → docs/05 - Qualidade/tester-findings/TESTER-YYYY-WW.md  ← findings para o Planner
-  → .claude/BACKLOG.md                                       ← bugs e gaps com ICE
+  → .claude/backlog.md                                       ← bugs e gaps com ICE
 ```
 
 **Se o `gh` não estiver disponível:** registre "Tester: status indisponível" e avance para o Passo 3.
@@ -199,7 +199,7 @@ Total de itens gerados: [N]
 
 ## Passo 5.5 — Registrar itens no BACKLOG
 
-Leia `.claude/BACKLOG.md` para encontrar o próximo ID disponível na seção "🟡 Backlog — bugs".
+Leia `.claude/backlog.md` para encontrar o próximo ID disponível na seção "🟡 Backlog — bugs".
 
 Para cada item gerado nos Passos 2, 3 e 4, adicione ao BACKLOG com ICE estimado:
 
@@ -217,7 +217,7 @@ Formato de cada entrada no BACKLOG:
 
 - Se não houver itens novos, não adicione nada (não criar linhas vazias)
 - Se o item já constar no BACKLOG (por nome similar), não duplique — apenas atualize se necessário
-- Salve o BACKLOG.md atualizado com `Write`
+- Salve o backlog.md atualizado com `Write`
 
 ---
 
@@ -236,7 +236,7 @@ Formato de cada entrada no BACKLOG:
   🟡 Gaps de cobertura: [N]
   🟠 Frontend sem validação: [N]
 
-  → O Planner lê TESTER-[YYYY-WW].md e .claude/BACKLOG.md na montagem do sprint
+  → O Planner lê TESTER-[YYYY-WW].md e .claude/backlog.md na montagem do sprint
   → Para aplicar correções de cobertura agora: /agent-tester (modo interativo)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```

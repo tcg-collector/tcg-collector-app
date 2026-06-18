@@ -1,4 +1,4 @@
-﻿# Sessão: Agent Builder
+# Sessão: Agent Builder
 
 **Slug:** agent-builder  
 **Status:** executing  
@@ -18,7 +18,7 @@
 
 ## Contexto para próxima sessão
 - Agent é skill Claude Code (.md em .claude/commands/), não endpoint nem tela
-- Lê docs/sprints/SPRINT-YYYY-WW.md como contrato — só executa sprints com status "Aprovada"
+- Lê .claude/sprints/sprint-YYYY-WW.md como contrato — só executa sprints com status "Aprovada"
 - Fluxo por item: lê escopo → classifica risco → (se alto: pausa) → implementa → typecheck+lint → /ship
 - Risco alto: schema com impacto, endpoints POST/PUT/DELETE públicos, auth.ts, CORS, remoção de campos
 - Máx 2 tentativas de correção por item — se falhar, marca ❌ Erro e avança

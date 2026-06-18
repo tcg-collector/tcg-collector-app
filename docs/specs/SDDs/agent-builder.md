@@ -1,4 +1,4 @@
-﻿# SDD — Agent Builder
+# SDD — Agent Builder
 
 **PRD:** [[../PRDs/agent-builder]]  
 **Status:** Draft  
@@ -8,7 +8,7 @@
 
 ## Visão técnica
 
-Skill do Claude Code (`/agent-builder`) que lê `docs/sprints/SPRINT-YYYY-WW.md`, executa cada item em sequência (implementa → typecheck + lint → /ship), pausa em risco alto e atualiza o contrato com o status de cada item.
+Skill do Claude Code (`/agent-builder`) que lê `.claude/sprints/sprint-YYYY-WW.md`, executa cada item em sequência (implementa → typecheck + lint → /ship), pausa em risco alto e atualiza o contrato com o status de cada item.
 
 ---
 
@@ -30,7 +30,7 @@ Skill file principal. Contém a lógica de leitura do contrato, classificação 
 ```
 1. Preparação
    └─ Calcula semana atual (YYYY-WW)
-   └─ Lê o sprint mais recente em docs/sprints/
+   └─ Lê o sprint mais recente em .claude/sprints/
    └─ Confirma que o sprint tem status "Aprovada"
    └─ Lista os itens pendentes em ordem de execução
 
@@ -100,7 +100,7 @@ Skill file principal. Contém a lógica de leitura do contrato, classificação 
 
 ## Estrutura de atualização do contrato de sprint
 
-Ao finalizar cada item, edita `docs/sprints/SPRINT-YYYY-WW.md`:
+Ao finalizar cada item, edita `.claude/sprints/sprint-YYYY-WW.md`:
 
 ```markdown
 ### 1. [Nome do item]
@@ -149,7 +149,7 @@ Agent: "Builder"
 Data: YYYY-MM-DD
 Status: "✅ Concluído" | "⚠️ Parcial" | "❌ Erro"
 Resumo: [X/Y itens concluídos, PRs #N, #N]
-Relatório: docs/sprints/SPRINT-YYYY-WW.md
+Relatório: .claude/sprints/sprint-YYYY-WW.md
 Sprint: [número da semana como inteiro]
 ```
 

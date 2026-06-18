@@ -1,4 +1,4 @@
-﻿# SDD — Agent Planner
+# SDD — Agent Planner
 
 **PRD:** [[../PRDs/agent-planner]]  
 **Status:** Draft  
@@ -23,11 +23,11 @@ Skill do Claude Code (`/agent-planner`) que toda quarta-feira agrega output do P
 ### `.claude/commands/agent-planner.md`
 Skill file principal. Contém os 9 passos de execução, formato da proposta de sprint, lógica de checkpoint humano e instruções de output para o Builder.
 
-### `docs/sprints/`
+### `.claude/sprints/`
 Pasta para contratos de sprint aprovados.  
 Convenção: `SPRINT-YYYY-WW.md` (ex: `SPRINT-2026-W26.md`)
 
-### `docs/sprints/.gitkeep`
+### `.claude/sprints/.gitkeep`
 Mantém o diretório no git.
 
 ---
@@ -38,7 +38,7 @@ Mantém o diretório no git.
 1. Preparação
    └─ Calcula semana atual (YYYY-WW)
    └─ Lê último relatório Produteiro em docs/04 - Produto/hipoteses/
-   └─ Verifica sprint anterior em docs/sprints/ (itens pendentes?)
+   └─ Verifica sprint anterior em .claude/sprints/ (itens pendentes?)
    └─ Lê CLAUDE.md "Estado atual" para confirmar o que está em produção
 
 2. Leitura das falhas do Tester
@@ -64,7 +64,7 @@ Mantém o diretório no git.
    └─ Sem resposta → encerra sem salvar nada
 
 6. Salvar sprint aprovada (só executa após aprovação)
-   └─ Escreve docs/sprints/SPRINT-YYYY-WW.md
+   └─ Escreve .claude/sprints/sprint-YYYY-WW.md
 
 7. Atualizar Notion (só executa após aprovação)
    └─ notion-update-page na página do Planner (insert_content, position: end)
@@ -164,7 +164,7 @@ Agent: "Planner"
 Data: YYYY-MM-DD
 Status: "✅ Concluído" | "⏳ Aguardando aprovação" | "❌ Erro"
 Resumo: itens aprovados para o sprint em 1 linha
-Relatório: docs/sprints/SPRINT-YYYY-WW.md
+Relatório: .claude/sprints/sprint-YYYY-WW.md
 Sprint: [número da semana como int, ex: 25]
 ```
 
@@ -192,8 +192,8 @@ Configurar via `/schedule` após skill file pronto:
 
 ```
 + .claude/commands/agent-planner.md      ← skill file (principal)
-+ docs/sprints/                          ← criar diretório
-+ docs/sprints/.gitkeep                  ← manter no git
++ .claude/sprints/                          ← criar diretório
++ .claude/sprints/.gitkeep                  ← manter no git
 ~ docs/05 - Qualidade/Agents-Backlog.md  ← atualizar status após ship
 ```
 

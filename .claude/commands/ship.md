@@ -1,4 +1,4 @@
-﻿---
+---
 name: ship
 description: >
   Deploy estruturado para o projeto TCG Bindex: commit + push para develop,
@@ -99,7 +99,7 @@ Use `--squash` para manter o histórico da main limpo.
 
 ### Etapa 7 — Atualizar BACKLOG (se aplicável)
 
-Após o merge, leia `.claude/BACKLOG.md` e verifique se há itens em `🔵 Em sprint` relacionados a este PR.
+Após o merge, leia `.claude/backlog.md` e verifique se há itens em `🔵 Em sprint` relacionados a este PR.
 
 - Se houver: mova-os para `✅ Entregue` com a data de hoje e o número do PR
 - Se não houver (deploy de infra, docs, agents, chore): pule esta etapa sem modificar o BACKLOG
