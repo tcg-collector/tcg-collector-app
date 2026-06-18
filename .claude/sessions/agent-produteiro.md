@@ -1,4 +1,4 @@
-# Sessão: Agent Produteiro
+﻿# Sessão: Agent Produteiro
 
 **Slug:** agent-produteiro  
 **Status:** executing  
@@ -6,8 +6,8 @@
 **Objetivo:** Criar skill /agent-produteiro que toda terça analisa o relatório SWOT, prioriza oportunidades com ICE score e entrega lista para o Agent Planner
 
 ## Documentos
-- PRD: docs/04 - Produto/PRDs/agent-produteiro.md
-- SDD: docs/02 - Backend/SDDs/agent-produteiro.md
+- PRD: docs/specs/PRDs/agent-produteiro.md
+- SDD: docs/specs/SDDs/agent-produteiro.md
 
 ## Checkpoints
 - [x] PRD criado e aprovado
@@ -29,3 +29,4 @@
 
 ## Histórico
 - 2026-06-17 — PRD e SDD aprovados, sessão iniciada
+

@@ -153,20 +153,14 @@ EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_...
 Backend Railway · Vercel tcgbindex.app · Clerk Production · CI/CD · Histórico de preços · Inteligência de valor na coleção · Scan IA
 
 **Sistema de agents (pipeline semanal):**
-- `/agent-swot` — inteligência competitiva toda segunda (output: `docs/inteligência/SWOT-YYYY-WW.md`)
-- `/agent-produteiro` — priorização ICE toda terça (output: `docs/04 - Produto/hipoteses/PRODUTEIRO-YYYY-WW.md`)
+- `@agent-swot` — inteligência competitiva toda segunda (`.claude/agents/agent-swot.md` — contexto isolado)
+- `@agent-produteiro` — priorização ICE toda terça (`.claude/agents/agent-produteiro.md` — contexto isolado)
 - `/agent-planner` — proposta de sprint toda quarta, aguarda aprovação (output: `docs/sprints/SPRINT-YYYY-WW.md`)
 - `/agent-builder` — executa sprint aprovado com regras de risco (acionado pelo Planner)
 - `/agent-tester` — audita cobertura, detecta bugs e gera backlog proativo (output: `docs/05 - Qualidade/tester-findings/TESTER-YYYY-WW.md`)
 
-### ⏳ Fase 2 — backlog
-- Gráfico de histórico de preço na tela de carta (backend pronto)
-- Sentry — monitoramento de erros
-- UX/UI — auditoria e ciclo de melhorias contínuas
-- Variantes e idiomas de cartas (foil, reverse, promo, JP/ZH) — depende de POC
-
-### 🔭 Fase 3 — planejado
-Wishlist + alertas de preço · Bindex Pro (monetização) · EAS Build + lojas · Google OAuth web · Comunidade/marketplace
+### ⏳ Backlog e roadmap
+Itens priorizados, hipóteses e histórico de entregues: `.claude/BACKLOG.md`
 
 ---
 
@@ -179,6 +173,9 @@ Wishlist + alertas de preço · Bindex Pro (monetização) · EAS Build + lojas 
 | Adaptações web vs mobile | `docs/03 - Frontend/Estrutura de Navegação.md` |
 | Pipeline de qualidade | `docs/05 - Qualidade/` |
 | ADRs | `docs/01 - Arquitetura/ADRs/` |
-| Agents — backlog e spec | `docs/05 - Qualidade/Agents-Backlog.md` |
+| PRDs e SDDs | `docs/specs/PRDs/` e `docs/specs/SDDs/` |
+| Backlog e roadmap | `.claude/BACKLOG.md` |
+| Rotinas agendadas | `.claude/SCHEDULES.md` |
+| Agents — specs | `docs/specs/PRDs/agent-*.md` |
 | Sentry — plano | `docs/05 - Qualidade/Sentry-Plan.md` |
 | Análise competitiva | Notion — "Análise Competitiva" (via MCP) |

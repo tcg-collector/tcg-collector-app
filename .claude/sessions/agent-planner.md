@@ -1,4 +1,4 @@
-# Sessão: Agent Planner
+﻿# Sessão: Agent Planner
 
 **Slug:** agent-planner  
 **Status:** executing  
@@ -6,8 +6,8 @@
 **Objetivo:** Criar skill /agent-planner que toda quarta monta proposta de sprint, aguarda aprovação de Matheus e só então salva o contrato e instrui o Builder
 
 ## Documentos
-- PRD: docs/04 - Produto/PRDs/agent-planner.md
-- SDD: docs/02 - Backend/SDDs/agent-planner.md
+- PRD: docs/specs/PRDs/agent-planner.md
+- SDD: docs/specs/SDDs/agent-planner.md
 
 ## Checkpoints
 - [x] PRD criado e aprovado
@@ -30,3 +30,4 @@
 
 ## Histórico
 - 2026-06-17 — PRD e SDD aprovados, sessão iniciada
+

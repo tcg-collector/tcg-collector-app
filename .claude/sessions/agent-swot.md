@@ -1,4 +1,4 @@
-# Sessão: Agent SWOT
+﻿# Sessão: Agent SWOT
 
 **Slug:** agent-swot  
 **Status:** executing  
@@ -6,8 +6,8 @@
 **Objetivo:** Criar skill /agent-swot com varredura semanal de concorrentes TCG e atualização automática da RAG no Notion
 
 ## Documentos
-- PRD: docs/04 - Produto/PRDs/agent-swot.md
-- SDD: docs/02 - Backend/SDDs/agent-swot.md
+- PRD: docs/specs/PRDs/agent-swot.md
+- SDD: docs/specs/SDDs/agent-swot.md
 
 ## Notion — links criados nesta sessão
 - Hub Sistema de Agents: https://app.notion.com/p/3828b3b93cfd81ea9e19df13c6f94b90
@@ -36,3 +36,4 @@
 
 ## Histórico
 - 2026-06-17 — PRD e SDD aprovados, estrutura Notion criada, sessão iniciada
+

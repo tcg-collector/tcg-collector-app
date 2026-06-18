@@ -1,6 +1,6 @@
-# SDD — Agent Produteiro
+﻿# SDD — Agent Produteiro
 
-**PRD:** [[PRDs/agent-produteiro]]  
+**PRD:** [[../PRDs/agent-produteiro]]  
 **Status:** Draft  
 **Data:** 2026-06-17
 
@@ -157,3 +157,4 @@ Configurar via `/schedule` após skill file pronto:
 - **SWOT ausente:** se o Agent SWOT não rodou na segunda (falha ou feriado), o Produteiro sinaliza ausência e analisa o último disponível
 - **Backlog desatualizado:** o Produteiro lê CLAUDE.md e Agents-Backlog.md — se esses arquivos estiverem defasados, a análise fica imprecisa. Regra: após cada sprint, atualizar "Estado atual" do CLAUDE.md
 - **ICE subjetivo:** pontuações são estimativas do próprio Claude com base nos dados disponíveis. O Planner e Matheus podem ajustar antes de executar
+

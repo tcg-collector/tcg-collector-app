@@ -1,4 +1,4 @@
-# Sessão: Coleção com Inteligência de Valor
+﻿# Sessão: Coleção com Inteligência de Valor
 
 **Slug:** colecao-inteligencia-valor  
 **Status:** done  
@@ -6,8 +6,8 @@
 **Objetivo:** Adicionar painel de inteligência de valor no topo da tela de Coleção — resumo total em BRL + delta, carrossel de maiores valorizações e carrossel de mais valiosas da coleção do usuário.
 
 ## Documentos
-- PRD: docs/04 - Produto/PRDs/colecao-inteligencia-valor.md
-- SDD: docs/02 - Backend/SDDs/colecao-inteligencia-valor.md
+- PRD: docs/specs/PRDs/colecao-inteligencia-valor.md
+- SDD: docs/specs/SDDs/colecao-inteligencia-valor.md
 
 ## Checkpoints
 - [x] PRD criado e aprovado
@@ -29,3 +29,4 @@
 
 ## Histórico
 - 2026-06-16 — PRD e SDD aprovados, sessão iniciada
+

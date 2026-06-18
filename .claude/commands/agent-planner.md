@@ -25,8 +25,9 @@ Repositório: `C:\Users\mathm\.claude\projects\build-app-tcg`
 
 1. Calcule a semana atual no formato `YYYY-WW`
 2. Leia o último relatório do Produteiro em `docs/04 - Produto/hipoteses/` — é o input principal
-3. Verifique se há sprint anterior em `docs/sprints/` — itens pendentes entram nesta semana
-4. Leia a seção "Estado atual" do `CLAUDE.md` para confirmar o que está em produção
+3. Leia `.claude/BACKLOG.md` — lista completa de itens priorizados (B-xxx features e BUG-xxx bugs)
+4. Verifique se há sprint anterior em `docs/sprints/` — itens pendentes entram nesta semana
+5. Leia a seção "Estado atual" do `CLAUDE.md` para confirmar o que está em produção
 
 Se não houver relatório do Produteiro desta semana, use o mais recente e sinalize no relatório.
 
@@ -116,6 +117,14 @@ Aguarde a resposta de Matheus e processe:
 ---
 
 ## Passo 6 — Salvar sprint aprovada ⚠️ SOMENTE APÓS APROVAÇÃO
+
+### 6a — Atualizar BACKLOG
+
+Leia `.claude/BACKLOG.md` e marque os itens incluídos no sprint:
+- Para cada `B-xxx` ou `BUG-xxx` selecionado: mova da seção "🟡 Backlog" para "🔵 Em sprint" com a semana atual
+- Salve o BACKLOG.md atualizado com `Write`
+
+### 6b — Salvar contrato de sprint
 
 Salve o contrato da sprint em `docs/sprints/SPRINT-YYYY-WW.md`:
 

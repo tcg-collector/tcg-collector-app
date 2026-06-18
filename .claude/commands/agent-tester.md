@@ -171,6 +171,30 @@ Total de itens gerados: [N]
 
 ---
 
+## Passo 5.5 — Registrar itens no BACKLOG
+
+Leia `.claude/BACKLOG.md` para encontrar o próximo ID disponível na seção "🟡 Backlog — bugs".
+
+Para cada item gerado nos Passos 2, 3 e 4, adicione ao BACKLOG com ICE estimado:
+
+| Label | Impact | Confidence | Effort padrão | ICE |
+|-------|--------|------------|---------------|-----|
+| 🔴 Bug confirmado | 8 | 9 | 3 | 24.0 |
+| 🟡 Gap de cobertura | 5 | 8 | 2 | 20.0 |
+| 🟠 Frontend sem validação | 6 | 6 | 3 | 12.0 |
+
+Formato de cada entrada no BACKLOG:
+
+```
+| BUG-XXX | [label] [descrição curta] | [ICE] | [Effort] | [YYYY-WW] | [rota/tela afetada] |
+```
+
+- Se não houver itens novos nesta semana, não adicione nada (não criar linhas vazias)
+- Se o item já constar no BACKLOG (por nome similar), não duplique — apenas atualize se necessário
+- Salve o BACKLOG.md atualizado com `Write`
+
+---
+
 ## Passo 6 — Exibir resultado e propor ações
 
 Se não houver itens de backlog:

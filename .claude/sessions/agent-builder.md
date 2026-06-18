@@ -1,4 +1,4 @@
-# Sessão: Agent Builder
+﻿# Sessão: Agent Builder
 
 **Slug:** agent-builder  
 **Status:** executing  
@@ -6,8 +6,8 @@
 **Objetivo:** Criar skill /agent-builder que executa o contrato de sprint aprovado pelo Planner, item por item, com classificação de risco e deploy via /ship
 
 ## Documentos
-- PRD: docs/04 - Produto/PRDs/agent-builder.md
-- SDD: docs/02 - Backend/SDDs/agent-builder.md
+- PRD: docs/specs/PRDs/agent-builder.md
+- SDD: docs/specs/SDDs/agent-builder.md
 
 ## Checkpoints
 - [x] PRD criado e aprovado
@@ -29,3 +29,4 @@
 
 ## Histórico
 - 2026-06-17 — PRD e SDD aprovados, sessão iniciada
+

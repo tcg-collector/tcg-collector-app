@@ -1,6 +1,6 @@
-# SDD — Agent Tester
+﻿# SDD — Agent Tester
 
-**PRD:** [[PRDs/agent-tester]]  
+**PRD:** [[../PRDs/agent-tester]]  
 **Status:** Em produção  
 **Data:** 2026-06-17
 
@@ -69,3 +69,4 @@ Total: N itens — 🔴 N · 🟡 N · 🟠 N
 - Novas rotas autenticadas devem usar a variável `token` já disponível no `main()` do script
 - Rotas de scan têm rate limit 10/min — usar imagem base64 mínima no teste
 - `Card._id` é string (ex: `"base1-4"`), não ObjectId
+
