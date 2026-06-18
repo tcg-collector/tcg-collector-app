@@ -28,9 +28,10 @@ Para atualizar uma task: `update_scheduled_task` com o `taskId` abaixo.
 | Task ID | `agent-produteiro-semanal` |
 | Schedule | Toda terça-feira às 09:01 BRT |
 | Cron | `0 9 * * 2` |
-| Invoca | `/agent-produteiro` → `.claude/commands/agent-produteiro.md` |
+| Invoca | `@agent-produteiro` → `.claude/agents/agent-produteiro.md` |
 | Output | `docs/04 - Produto/hipoteses/PRODUTEIRO-YYYY-WW.md` + Notion |
-| Tipo | Skill (contexto principal) |
+| Tipo | Agent (contexto isolado) |
+| Depende de | `agent-swot-semanal` deve ter rodado na segunda — lê `docs/inteligência/SWOT-YYYY-WW.md` |
 
 ---
 
