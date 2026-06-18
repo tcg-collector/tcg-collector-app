@@ -1,9 +1,20 @@
 ---
 name: agent-swot
 description: >
-  Agent de inteligência competitiva. Varre concorrentes do mercado TCG,
-  descobre novos players, gera relatório SWOT semanal e atualiza a RAG
-  de mercado no Notion. Roda toda segunda-feira via /schedule.
+  Agent de inteligência competitiva TCG Bindex. Varre 9 concorrentes do mercado Pokémon TCG físico,
+  descobre novos players e gera relatório SWOT semanal para alimentar o Agent Produteiro.
+  Invocado toda segunda-feira via scheduled task (agent-swot-semanal).
+  Output: docs/inteligência/SWOT-YYYY-WW.md e atualização do Notion.
+  Use quando precisar de análise competitiva atualizada do mercado TCG.
+tools:
+  - WebSearch
+  - Read
+  - Write
+  - Glob
+  - Agent
+  - mcp__20569d1c-8134-4a44-9e66-e173bbf4311c__notion-fetch
+  - mcp__20569d1c-8134-4a44-9e66-e173bbf4311c__notion-update-page
+  - mcp__20569d1c-8134-4a44-9e66-e173bbf4311c__notion-create-pages
 ---
 
 # Agent SWOT — Inteligência Competitiva TCG Bindex
@@ -244,4 +255,4 @@ Se qualquer passo falhou, indique claramente qual e o motivo, mas não interromp
 - **Datas** — sempre use a data real de hoje (disponível no contexto do sistema)
 - **Volume** — use "alto" (10+ menções), "médio" (3-9), "baixo" (1-2), "sem dados" (0)
 - **Novos players** — seja conservador: dúvida = não inclui
-- **Notion** — sempre append, nunca replace. Em caso de erro no Notion, o relatório local é suficiente
+- **Notion** — sempre append, nunca replace. Erro no Notion = continuar, relatório local é suficiente
