@@ -1,4 +1,4 @@
----
+﻿---
 name: feature
 description: >
   Orquestra o desenvolvimento completo de uma feature: valida contexto, gera PRD,
@@ -40,7 +40,7 @@ Só avance para a Etapa 2 quando tiver clareza suficiente sobre os 5 pontos acim
 
 ## Etapa 2 — PRD (Product Requirements Document)
 
-Gere o PRD e **salve em `docs/04 - Produto/PRDs/<slug-da-feature>.md`**.
+Gere o PRD e **salve em `docs/specs/PRDs/<slug-da-feature>.md`**.
 
 Use este template:
 
@@ -79,7 +79,7 @@ Use este template:
 
 Após salvar, exiba o PRD completo e pergunte:
 
-> PRD salvo em `docs/04 - Produto/PRDs/<slug>.md`. Está alinhado com o que você quer? Posso ajustar antes de gerar o SDD.
+> PRD salvo em `docs/specs/PRDs/<slug>.md`. Está alinhado com o que você quer? Posso ajustar antes de gerar o SDD.
 
 Só avance para a Etapa 3 após confirmação explícita.
 
@@ -95,7 +95,7 @@ Com o PRD aprovado, use **dois subagentes em paralelo** para pesquisar o código
 
 Aguarde os dois retornarem, consolide os achados e só então escreva o SDD. Isso garante que o design técnico reflete o código real, não suposições.
 
-Gere o SDD e **salve em `docs/02 - Backend/SDDs/<slug-da-feature>.md`**.
+Gere o SDD e **salve em `docs/specs/SDDs/<slug-da-feature>.md`**.
 
 Use este template:
 
@@ -162,8 +162,8 @@ Após salvar o SDD, crie o **artifact de sessão** em `.claude/sessions/<slug>.m
 **Objetivo:** <objetivo em uma linha, extraído do PRD>
 
 ## Documentos
-- PRD: docs/04 - Produto/PRDs/<slug>.md
-- SDD: docs/02 - Backend/SDDs/<slug>.md
+- PRD: docs/specs/PRDs/<slug>.md
+- SDD: docs/specs/SDDs/<slug>.md
 
 ## Checkpoints
 - [x] PRD criado e aprovado
@@ -257,10 +257,11 @@ Ao receber aprovação, marque o checkpoint de Plan Mode na sessão e implemente
 
 ## Notas
 
-- PRDs ficam em `docs/04 - Produto/PRDs/` — crie a pasta se não existir
-- SDDs ficam em `docs/02 - Backend/SDDs/` — crie a pasta se não existir
+- PRDs ficam em `docs/specs/PRDs/` — crie a pasta se não existir
+- SDDs ficam em `docs/specs/SDDs/` — crie a pasta se não existir
 - Sessions ficam em `.claude/sessions/` — crie a pasta se não existir
 - Slug da feature: kebab-case, descritivo (ex: `filtros-colecao`, `historico-precos`)
 - Sempre leia o código atual antes de escrever o SDD — nunca assuma como está implementado
 - Ao completar cada checkpoint durante a implementação, atualize `.claude/sessions/<slug>.md` imediatamente
 - Após `/ship`, marque todos os checkpoints, mude status para `done` e registre no Histórico
+

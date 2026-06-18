@@ -1,6 +1,6 @@
-# SDD — Agent Builder
+﻿# SDD — Agent Builder
 
-**PRD:** [[PRDs/agent-builder]]  
+**PRD:** [[../PRDs/agent-builder]]  
 **Status:** Draft  
 **Data:** 2026-06-17
 
@@ -180,3 +180,4 @@ Sprint: [número da semana como inteiro]
 - **Item complexo inesperado:** se durante a implementação o Builder descobrir que o item é mais complexo do que o estimado, pausa e informa antes de continuar
 - **Conflito de merge:** o mesmo padrão de rebase em `origin/main` que o /ship já resolve — Builder chama /ship que lida com isso
 - **Candidato reserva:** o Builder só executa o candidato reserva se todos os itens principais forem concluídos com tempo sobrando — nunca por padrão
+

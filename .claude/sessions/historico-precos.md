@@ -1,4 +1,4 @@
-# Sessão: Histórico de Preços das Cartas
+﻿# Sessão: Histórico de Preços das Cartas
 
 **Slug:** historico-precos  
 **Status:** done  
@@ -6,8 +6,8 @@
 **Objetivo:** Criar camada de histórico de preços com snapshots diários, 5 novos endpoints e helper calcGainers() compartilhado — fundação para carrosséis de mercado e inteligência de valor.
 
 ## Documentos
-- PRD: docs/04 - Produto/PRDs/historico-precos.md
-- SDD: docs/02 - Backend/SDDs/historico-precos.md
+- PRD: docs/specs/PRDs/historico-precos.md
+- SDD: docs/specs/SDDs/historico-precos.md
 
 ## Checkpoints
 - [x] PRD criado e aprovado
@@ -28,3 +28,4 @@
 
 ## Histórico
 - 2026-06-16 — PRD e SDD aprovados, sessão iniciada
+

@@ -1,4 +1,4 @@
-# Sessão: Perfil — Limpeza Visual e Tags "Em Breve"
+﻿# Sessão: Perfil — Limpeza Visual e Tags "Em Breve"
 
 **Slug:** perfil-limpeza-em-breve  
 **Status:** done  
@@ -6,8 +6,8 @@
 **Objetivo:** Adicionar badge "Em breve" nos 4 itens sem funcionalidade, remover seção "Notificações" e corrigir stats para incluir cartas avulsas.
 
 ## Documentos
-- PRD: docs/04 - Produto/PRDs/perfil-limpeza-em-breve.md
-- SDD: docs/02 - Backend/SDDs/perfil-limpeza-em-breve.md
+- PRD: docs/specs/PRDs/perfil-limpeza-em-breve.md
+- SDD: docs/specs/SDDs/perfil-limpeza-em-breve.md
 
 ## Checkpoints
 - [x] PRD criado e aprovado
@@ -27,3 +27,4 @@
 
 ## Histórico
 - 2026-06-16 — PRD e SDD aprovados, sessão iniciada
+

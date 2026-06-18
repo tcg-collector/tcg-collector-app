@@ -1,6 +1,6 @@
-# SDD — Home: Carrosséis de Mercado
+﻿# SDD — Home: Carrosséis de Mercado
 
-**PRD:** [[PRDs/home-carrosseis-mercado]]  
+**PRD:** [[../PRDs/home-carrosseis-mercado]]  
 **Status:** Draft  
 **Data:** 2026-06-16
 
@@ -125,3 +125,4 @@ app/
 - **Dois fetches na Home:** `topGainers` e `topValue` são chamados em paralelo via `Promise.all`. Latência percebida = max(t1, t2), não soma.
 - **Market row removida:** Os valores +12,4%/-3,1% eram hardcoded e enganosos. A remoção é melhoria de qualidade. A cotação USD→BRL permanece implícita nos preços exibidos em BRL nos carrosséis.
 - **`useCards` não é mais usado na Home:** importação e hook serão removidos — sem impacto em outras telas (hook é usado em `collection.tsx` separadamente).
+

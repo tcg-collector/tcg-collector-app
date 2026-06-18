@@ -1,6 +1,6 @@
-# SDD — Histórico de Preços das Cartas
+﻿# SDD — Histórico de Preços das Cartas
 
-**PRD:** [[PRDs/historico-precos]]  
+**PRD:** [[../PRDs/historico-precos]]  
 **Status:** Draft  
 **Data:** 2026-06-16
 
@@ -203,3 +203,4 @@ backend/src/scripts/agent-tester.ts      ← 5 novas entradas em KNOWN_ROUTES (c
 - **Primeiro dia sem histórico:** nos primeiros dias após deploy, `calcGainers` retornará lista vazia (sem snapshots em D-7). Comportamento esperado — os carrosséis ficam vazios até acumular dados. Não quebra nada.
 - **TTL index delay:** MongoDB processa TTL a cada ~60 segundos, então registros podem sobreviver alguns minutos além dos 60 dias. Sem impacto prático.
 - **Upsert no sync:** o `bulkWrite` com upsert lê todas as ~12k cartas a cada execução diária do cron. Timing: o cron já leva vários minutos para paginar a PokéTCG API — essa operação adicional é paralela e não bloqueia.
+

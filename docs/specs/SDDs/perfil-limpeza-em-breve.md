@@ -1,6 +1,6 @@
-# SDD — Perfil: Limpeza Visual e Tags "Em Breve"
+﻿# SDD — Perfil: Limpeza Visual e Tags "Em Breve"
 
-**PRD:** [[PRDs/perfil-limpeza-em-breve]]  
+**PRD:** [[../PRDs/perfil-limpeza-em-breve]]  
 **Status:** Draft  
 **Data:** 2026-06-16
 
@@ -115,3 +115,4 @@ app/
 - **`useCollection` adiciona um fetch extra no Perfil**: a tela já carregava binders; agora carrega também a coleção avulsa. Loading unificado até ambos resolverem — sem impacto perceptível.
 - **Valor total pode mudar para o usuário**: se ele tinha cartas avulsas, o número sobe. É a correção desejada, não um bug.
 - **`comingSoon` desabilita o toque mas não muda a cor do label**: manter legibilidade — o badge já comunica o estado.
+

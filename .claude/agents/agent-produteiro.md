@@ -58,8 +58,8 @@ Agent Produteiro (este agent)
 1. Calcule a semana atual no formato `YYYY-WW` (ex: `2026-W26`)
 2. Use `Glob` para listar `docs/inteligência/SWOT-*.md` e identificar o relatório mais recente
 3. Leia o relatório SWOT encontrado — é o input principal desta análise
-4. Leia a seção "Estado atual" do `CLAUDE.md` — o que está em produção, Fase 2 e Fase 3
-5. Leia `docs/05 - Qualidade/Agents-Backlog.md` — itens já mapeados no backlog
+4. Leia a seção "Estado atual" do `CLAUDE.md` — o que está em produção
+5. Leia `.claude/BACKLOG.md` — fonte autoritativa do backlog atual (hipóteses, itens priorizados, entregues)
 
 ---
 
@@ -134,6 +134,29 @@ Top gaps da semana:
 ## Comparação com semana anterior
 [o que mudou na priorização — ou "Primeira execução"]
 ```
+
+---
+
+## Passo 5.5 — Atualizar BACKLOG
+
+Leia `.claude/BACKLOG.md` e aplique as mudanças geradas por esta análise:
+
+1. **Promover hipóteses validadas → backlog:**
+   Para cada oportunidade da tabela ICE (Passo 4) que já existe como `H-xxx` no BACKLOG:
+   - Mova da seção "💡 Hipóteses" para "🟡 Backlog — features"
+   - Atribua o próximo ID disponível `B-xxx`
+   - Adicione ICE score, Effort e semana atual
+
+2. **Adicionar novas hipóteses:**
+   Para cada gap do SWOT que ainda não consta no BACKLOG:
+   - Adicione como `H-xxx` (próximo ID disponível) em "💡 Hipóteses"
+   - Inclua origem (ex: "SWOT W26") e data atual
+
+3. **Descartar itens invalidados:**
+   Para cada item sugerido para descarte na análise:
+   - Mova para "🗑️ Descartado" com justificativa em 1 linha
+
+4. Salve o BACKLOG.md atualizado com `Write`
 
 ---
 

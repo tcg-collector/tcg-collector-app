@@ -1,4 +1,4 @@
----
+﻿---
 name: ship
 description: >
   Deploy estruturado para o projeto TCG Bindex: commit + push para develop,
@@ -97,7 +97,18 @@ gh pr merge <numero-pr> --squash --delete-branch=false
 
 Use `--squash` para manter o histórico da main limpo.
 
-### Etapa 7 — Resumo final
+### Etapa 7 — Atualizar BACKLOG (se aplicável)
+
+Após o merge, leia `.claude/BACKLOG.md` e verifique se há itens em `🔵 Em sprint` relacionados a este PR.
+
+- Se houver: mova-os para `✅ Entregue` com a data de hoje e o número do PR
+- Se não houver (deploy de infra, docs, agents, chore): pule esta etapa sem modificar o BACKLOG
+
+Salve o BACKLOG.md atualizado com `Write` antes de exibir o resumo.
+
+---
+
+### Etapa 8 — Resumo final
 
 Exiba um sumário visual completo:
 
@@ -144,3 +155,4 @@ Não prossiga para as próximas etapas. Deixe o usuário corrigir e rodar `/ship
 - Remote: `https://github.com/tcg-collector/tcg-collector-app.git`
 - CI definido em `.github/workflows/ci.yml` — roda em push para `main` e `develop`
 - Timeout recomendado para CI: 10 minutos antes de alertar o usuário
+

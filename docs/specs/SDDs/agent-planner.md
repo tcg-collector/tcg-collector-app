@@ -1,6 +1,6 @@
-# SDD — Agent Planner
+﻿# SDD — Agent Planner
 
-**PRD:** [[PRDs/agent-planner]]  
+**PRD:** [[../PRDs/agent-planner]]  
 **Status:** Draft  
 **Data:** 2026-06-17
 
@@ -205,3 +205,4 @@ Configurar via `/schedule` após skill file pronto:
 - **Tester inacessível:** se `gh` falhar, Planner assume "sem falhas conhecidas" e registra o aviso
 - **Aprovação parcial:** Matheus pode aprovar "itens 1 e 3, remove o 2" — o Planner precisa processar isso corretamente antes de salvar
 - **Checkpoint em sessão assíncrona:** se o Planner rodar agendado e Matheus não estiver online, a proposta fica exibida na próxima vez que ele abrir o app — o Builder não é acionado
+

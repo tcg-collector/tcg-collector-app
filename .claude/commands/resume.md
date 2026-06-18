@@ -1,4 +1,4 @@
----
+﻿---
 name: resume
 description: >
   Retoma uma sessão de feature em andamento. Carrega o contexto da última sessão,
@@ -53,8 +53,8 @@ Leia o arquivo da sessão e exiba um resumo de orientação:
     <contexto da última sessão>
 
   Documentos:
-    PRD → docs/04 - Produto/PRDs/<slug>.md
-    SDD → docs/02 - Backend/SDDs/<slug>.md
+    PRD → docs/specs/PRDs/<slug>.md
+    SDD → docs/specs/SDDs/<slug>.md
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Pronto para continuar. O que quer fazer agora?
@@ -78,3 +78,4 @@ Quando todos os checkpoints estiverem completos e o `/ship` executado, atualize 
   Sessão arquivada em .claude/sessions/<slug>.md
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
+

@@ -1,6 +1,6 @@
-# SDD — Agent SWOT
+﻿# SDD — Agent SWOT
 
-**PRD:** [[PRDs/agent-swot]]  
+**PRD:** [[../PRDs/agent-swot]]  
 **Status:** Draft  
 **Data:** 2026-06-17
 
@@ -156,3 +156,4 @@ Após o skill file estar pronto, configurar via `/schedule`:
 - **WebSearch pode retornar resultados desatualizados** — o agent deve filtrar por data e sinalizar quando não encontrar dados recentes
 - **Notion MCP pode falhar silenciosamente** — o agent deve verificar se o update foi bem-sucedido antes de registrar ✅ no Painel
 - **Concorrentes novos podem ser falsos positivos** — o agent deve incluir critério de filtro (é um app real, tem página na loja, tem foco em TCG?)
+

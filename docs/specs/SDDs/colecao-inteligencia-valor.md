@@ -1,6 +1,6 @@
-# SDD — Coleção com Inteligência de Valor
+﻿# SDD — Coleção com Inteligência de Valor
 
-**PRD:** [[PRDs/colecao-inteligencia-valor]]  
+**PRD:** [[../PRDs/colecao-inteligencia-valor]]  
 **Status:** Draft  
 **Data:** 2026-06-16
 
@@ -137,3 +137,4 @@ app/
 - **Três fetches adicionais no mount:** chamados em paralelo via `Promise.all`, somam ~1 RTT. Mitigado: painel oculto se coleção vazia, então usuário novo não sente impacto.
 - **Primeiros dias sem histórico:** `summary.deltaUSD === 0` e `gainers === []` — painel aparece mas mostra "—" no delta e omite o carrossel de valorizações. Sem quebra visual.
 - **`collection.tsx` já tem 563 linhas:** a inserção do painel adiciona ~60 linhas mas não altera nenhuma lógica existente — risco de regressão baixo.
+

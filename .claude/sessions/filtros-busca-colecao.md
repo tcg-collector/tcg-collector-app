@@ -1,4 +1,4 @@
-# Sessão: Filtros, Busca e Ordenação na Coleção
+﻿# Sessão: Filtros, Busca e Ordenação na Coleção
 
 **Slug:** filtros-busca-colecao  
 **Status:** done  
@@ -6,8 +6,8 @@
 **Objetivo:** Adicionar busca, chips de condição e ordenação client-side nas telas de coleção e binder, com UX adaptativa para muitos binders e modal reativo com debounce.
 
 ## Documentos
-- PRD: docs/04 - Produto/PRDs/filtros-busca-colecao.md
-- SDD: docs/02 - Backend/SDDs/filtros-busca-colecao.md
+- PRD: docs/specs/PRDs/filtros-busca-colecao.md
+- SDD: docs/specs/SDDs/filtros-busca-colecao.md
 
 ## Checkpoints
 - [x] PRD criado e aprovado
@@ -28,3 +28,4 @@
 
 ## Histórico
 - 2026-06-16 — PRD e SDD aprovados, sessão iniciada
+

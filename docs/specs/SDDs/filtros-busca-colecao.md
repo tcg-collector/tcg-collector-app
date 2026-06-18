@@ -1,6 +1,6 @@
-# SDD — Filtros, Busca e Ordenação na Coleção
+﻿# SDD — Filtros, Busca e Ordenação na Coleção
 
-**PRD:** [[PRDs/filtros-busca-colecao]]  
+**PRD:** [[../PRDs/filtros-busca-colecao]]  
 **Status:** Draft  
 **Data:** 2026-06-16
 
@@ -187,3 +187,4 @@ Sem mudanças em backend, models, testes de integração ou API Reference.
 - **Paginação do binder com filtro:** filtrar slots antes de paginar muda o número de páginas dinamicamente — o `scrollRef` pode ficar em página inválida. Mitigação: resetar `currentPage` para 0 ao mudar filtro.
 - **looseOnly dead code:** `const looseOnly = items.filter(_i => true)` em `collection.tsx` pode ser removido e substituído pela lógica de filtro real.
 - **Estimativa de valor do binder:** sem preço histórico, usa `market` price atual. Se carta não tem preço, contribui com R$ 0 (sem crash).
+

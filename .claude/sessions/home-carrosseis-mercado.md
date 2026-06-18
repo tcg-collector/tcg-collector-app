@@ -1,4 +1,4 @@
-# Sessão: Home Carrosséis de Mercado
+﻿# Sessão: Home Carrosséis de Mercado
 
 **Slug:** home-carrosseis-mercado  
 **Status:** done  
@@ -6,8 +6,8 @@
 **Objetivo:** Redesign da Home — remover sino e market row hardcoded, adicionar carrosséis "Maiores Valorizações" e "Mais Valiosas" alimentados pelos endpoints /api/prices/top-gainers e /api/prices/top-value.
 
 ## Documentos
-- PRD: docs/04 - Produto/PRDs/home-carrosseis-mercado.md
-- SDD: docs/02 - Backend/SDDs/home-carrosseis-mercado.md
+- PRD: docs/specs/PRDs/home-carrosseis-mercado.md
+- SDD: docs/specs/SDDs/home-carrosseis-mercado.md
 
 ## Checkpoints
 - [x] PRD criado e aprovado
@@ -28,3 +28,4 @@
 
 ## Histórico
 - 2026-06-16 — PRD e SDD aprovados, sessão iniciada
+
