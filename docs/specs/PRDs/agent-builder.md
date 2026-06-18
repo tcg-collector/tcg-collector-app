@@ -12,7 +12,7 @@ O Planner aprova um sprint toda quarta com escopo e ordem definidos. Mas sem o B
 
 ## Solução
 
-Skill `/agent-builder` que lê o contrato de sprint aprovado (`docs/sprints/SPRINT-YYYY-WW.md`) e executa cada item em sequência: gera spec mínima se necessário, implementa, valida localmente (typecheck + lint) e faz deploy via `/ship`. Cada item vira um PR separado. Em pontos de risco alto (mudança de schema, auth, endpoints públicos), pausa e pede confirmação antes de continuar.
+Skill `/agent-builder` que lê o contrato de sprint aprovado (`.claude/sprints/sprint-YYYY-WW.md`) e executa cada item em sequência: gera spec mínima se necessário, implementa, valida localmente (typecheck + lint) e faz deploy via `/ship`. Cada item vira um PR separado. Em pontos de risco alto (mudança de schema, auth, endpoints públicos), pausa e pede confirmação antes de continuar.
 
 ## Usuário-alvo
 
@@ -21,12 +21,12 @@ Matheus (interno) — mas o impacto é direto no colecionador: o Builder é quem
 ## Critérios de aceite
 
 - [ ] Skill invocável via `/agent-builder` sem erros
-- [ ] Lê automaticamente o sprint mais recente em `docs/sprints/`
+- [ ] Lê automaticamente o sprint mais recente em `.claude/sprints/`
 - [ ] Executa cada item em ordem, marcando status no contrato (`⏳ Pendente` → `✅ Concluído` / `❌ Erro`)
 - [ ] Para cada item: implementa → typecheck + lint → `/ship` (cada item = 1 PR)
 - [ ] Pausa e pede confirmação em mudanças de risco alto antes de implementar
 - [ ] Nunca bypassa CI, hooks ou push direto para main
-- [ ] Atualiza `docs/sprints/SPRINT-YYYY-WW.md` com status de cada item ao finalizar
+- [ ] Atualiza `.claude/sprints/sprint-YYYY-WW.md` com status de cada item ao finalizar
 - [ ] Registra execução no Painel de Execuções com status final
 
 ## Fora do escopo
@@ -42,7 +42,7 @@ O pipeline completo SWOT → Produteiro → Planner → **Builder** fecha o loop
 
 ## Dependências
 
-- Agent Planner rodando toda quarta e gerando `docs/sprints/SPRINT-YYYY-WW.md`
+- Agent Planner rodando toda quarta e gerando `.claude/sprints/sprint-YYYY-WW.md`
 - Skill `/ship` existindo e funcionando
 - `gh` CLI autenticado
 - Painel de Execuções já criado (`71edffd6-f921-4c73-ac01-68d0b6a63420`)

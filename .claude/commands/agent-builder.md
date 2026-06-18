@@ -2,7 +2,7 @@
 name: agent-builder
 description: >
   Agent de execução de sprint. Lê o contrato aprovado pelo Planner em
-  docs/sprints/, implementa cada item em sequência via /ship, pausa em
+  .claude/sprints/, implementa cada item em sequência via /ship, pausa em
   risco alto e atualiza o contrato com o status de cada PR.
 ---
 
@@ -25,13 +25,14 @@ Regras críticas em: `CLAUDE.md` — leia antes de implementar qualquer item.
 ## Passo 1 — Preparação
 
 1. Calcule a semana atual (`YYYY-WW`)
-2. Leia o sprint mais recente em `docs/sprints/` (arquivo `SPRINT-YYYY-WW.md`)
+2. Use `Glob` para listar `.claude/sprints/sprint-*.md` e leia o mais recente
 3. Confirme que o sprint tem `**Status:** Aprovada` — se não tiver, encerre:
    ```
-   ⛔ Nenhum sprint aprovado encontrado em docs/sprints/.
-   Execute /agent-planner primeiro e aguarde aprovação de Matheus.
+   ⛔ Sprint em .claude/sprints/ não está aprovada.
+   Leia .claude/sprints/sprint-YYYY-WW.md, ajuste se necessário e mude Status para "Aprovada".
    ```
 4. Liste os itens com status `⏳ Pendente` — esses serão executados em ordem
+5. **Atualizar BACKLOG:** leia `.claude/backlog.md` e mova cada `B-xxx` ou `BUG-xxx` listado no sprint da seção "🟡 Backlog" para "🔵 Em sprint" com a semana atual. Salve com `Write`.
 
 ---
 
@@ -137,7 +138,7 @@ Invoque o skill `/ship "[descrição do item]"`:
 
 ### 2g — Atualizar contrato
 
-Edite `docs/sprints/SPRINT-YYYY-WW.md` para atualizar o status do item:
+Edite `.claude/sprints/sprint-YYYY-WW.md` para atualizar o status do item:
 
 Sucesso:
 ```markdown
@@ -197,7 +198,7 @@ Propriedades:
   Data: [data de hoje ISO]
   Status: "✅ Concluído" | "⚠️ Parcial" | "❌ Erro"
   Resumo: "[X/Y itens concluídos — PRs #N, #N]"
-  Relatório: docs/sprints/SPRINT-YYYY-WW.md
+  Relatório: .claude/sprints/sprint-YYYY-WW.md
   Sprint: [número da semana como inteiro, ex: 26]
 ```
 

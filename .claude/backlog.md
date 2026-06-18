@@ -68,6 +68,7 @@
 | Agent Planner — proposta de sprint com checkpoint humano | #28 | 2026-W25 |
 | Agent Builder — execução de sprint com regras de risco | #29 | 2026-W25 |
 | Agent Tester — auditoria E2E + backlog proativo | #30 | 2026-W25 |
+| Agent Tester migrado para .claude/agents/ (contexto isolado, escreve BACKLOG) | #37 | 2026-W25 |
 | Agent SWOT — paralelização 3 subagentes (1/3 do tempo) | #33 | 2026-W25 |
 | Hooks — cost tracking por sessão + beep de conclusão | — | 2026-W26 |
 | Agent SWOT migrado para .claude/agents/ (contexto isolado) | #34 | 2026-W26 |

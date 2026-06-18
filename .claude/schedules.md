@@ -42,9 +42,10 @@ Para atualizar uma task: `update_scheduled_task` com o `taskId` abaixo.
 | Task ID | `agent-planner-semanal` |
 | Schedule | Toda quarta-feira às 09:01 BRT |
 | Cron | `0 9 * * 3` |
-| Invoca | `/agent-planner` → `.claude/commands/agent-planner.md` |
-| Output | `docs/sprints/SPRINT-YYYY-WW.md` + aguarda aprovação humana |
-| Tipo | Skill (contexto principal) — tem checkpoint humano antes do Builder |
+| Invoca | `@agent-planner` → `.claude/agents/agent-planner.md` |
+| Output | `.claude/sprints/sprint-YYYY-WW.md` (status: Aguardando aprovação) |
+| Tipo | Agent (contexto isolado) — aprovação file-based por Matheus |
+| Aprovação | Matheus edita `.claude/sprints/sprint-YYYY-WW.md`, muda Status para "Aprovada", chama `/agent-builder` |
 
 ---
 
@@ -52,8 +53,7 @@ Para atualizar uma task: `update_scheduled_task` com o `taskId` abaixo.
 
 - **Cron em horário local (BRT)** — o Claude Code interpreta cron em horário local, não UTC
 - **Agent vs Skill**:
-  - SWOT, Produteiro e Tester → agents (contexto isolado, autônomos)
-  - Planner → skill (checkpoint humano obrigatório antes do Builder)
-  - Builder → skill (checkpoints de risco alto mid-execução)
-- **`@agent-tester`** pode ser invocado manualmente ou pelo Planner pós-merge. Para modo interativo com aplicação de correções: `/agent-tester`
+  - SWOT, Produteiro, Tester e Planner → agents (contexto isolado, autônomos)
+  - Builder → skill (checkpoints de risco alto mid-execução requerem presença humana)
+- **Aprovação do Planner é file-based:** editar `.claude/sprints/sprint-YYYY-WW.md` e mudar Status para "Aprovada"
 - **Recuperação**: se uma task for perdida, recriar com `create_scheduled_task` usando os valores acima

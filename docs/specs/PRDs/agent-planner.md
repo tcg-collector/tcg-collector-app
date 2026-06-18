@@ -25,7 +25,7 @@ Matheus (interno) — o Planner é o ponto de controle humano do pipeline. Ele g
 - [ ] Lê o último resultado do Agent Tester (falhas de rotas, se houver)
 - [ ] Gera proposta de sprint com: itens priorizados, estimativa de esforço total, ordem de execução, o que ficou de fora e por quê
 - [ ] **Para e aguarda aprovação explícita de Matheus** — não avança sem "aprovado"
-- [ ] Após aprovação: salva sprint em `docs/sprints/SPRINT-YYYY-WW.md`
+- [ ] Após aprovação: salva sprint em `.claude/sprints/sprint-YYYY-WW.md`
 - [ ] Após aprovação: atualiza Notion (página do Planner) com sprint da semana
 - [ ] Após aprovação: registra no Painel de Execuções com status ✅
 - [ ] Agendado para toda quarta-feira via `/schedule`

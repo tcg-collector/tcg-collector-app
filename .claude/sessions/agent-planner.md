@@ -1,4 +1,4 @@
-﻿# Sessão: Agent Planner
+# Sessão: Agent Planner
 
 **Slug:** agent-planner  
 **Status:** executing  
@@ -14,7 +14,7 @@
 - [x] SDD criado e aprovado
 - [x] Plan Mode executado e aprovado
 - [x] Skill file implementado (.claude/commands/agent-planner.md)
-- [x] docs/sprints/ criado com .gitkeep
+- [x] .claude/sprints/ criado com .gitkeep
 - [x] /schedule configurado para quarta-feira — toda quarta 09:00 BRT
 - [x] /ship executado com sucesso — PR #28 merged 2026-06-17T21:18:51Z
 
@@ -22,7 +22,7 @@
 - Agent é skill Claude Code (.md em .claude/commands/), não endpoint nem tela
 - Lê: docs/04 - Produto/hipoteses/PRODUTEIRO-YYYY-WW.md + gh run Agent Tester + sprint anterior
 - Checkpoint OBRIGATÓRIO: pausa e aguarda "aprovado" antes de qualquer ação pós-proposta
-- Output pós-aprovação: docs/sprints/SPRINT-YYYY-WW.md + Notion + Painel
+- Output pós-aprovação: .claude/sprints/sprint-YYYY-WW.md + Notion + Painel
 - Notion Planner: `3828b3b9-3cfd-8113-9d14-c4f77d4c1b47`
 - Painel de Execuções: `71edffd6-f921-4c73-ac01-68d0b6a63420`
 - Bugs do Tester = prioridade máxima no sprint, acima de qualquer ICE

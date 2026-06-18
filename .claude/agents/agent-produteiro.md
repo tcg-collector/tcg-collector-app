@@ -59,7 +59,7 @@ Agent Produteiro (este agent)
 2. Use `Glob` para listar `docs/inteligência/SWOT-*.md` e identificar o relatório mais recente
 3. Leia o relatório SWOT encontrado — é o input principal desta análise
 4. Leia a seção "Estado atual" do `CLAUDE.md` — o que está em produção
-5. Leia `.claude/BACKLOG.md` — fonte autoritativa do backlog atual (hipóteses, itens priorizados, entregues)
+5. Leia `.claude/backlog.md` — fonte autoritativa do backlog atual (hipóteses, itens priorizados, entregues)
 
 ---
 
@@ -139,7 +139,7 @@ Top gaps da semana:
 
 ## Passo 5.5 — Atualizar BACKLOG
 
-Leia `.claude/BACKLOG.md` e aplique as mudanças geradas por esta análise:
+Leia `.claude/backlog.md` e aplique as mudanças geradas por esta análise:
 
 1. **Promover hipóteses validadas → backlog:**
    Para cada oportunidade da tabela ICE (Passo 4) que já existe como `H-xxx` no BACKLOG:
