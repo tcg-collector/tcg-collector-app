@@ -53,7 +53,7 @@ Para atualizar uma task: `update_scheduled_task` com o `taskId` abaixo.
 
 - **Cron em horário local (BRT)** — o Claude Code interpreta cron em horário local, não UTC
 - **Agent vs Skill**:
-  - SWOT, Produteiro, Tester e Planner → agents (contexto isolado, autônomos)
-  - Builder → skill (checkpoints de risco alto mid-execução requerem presença humana)
+  - SWOT, Produteiro, Tester, Planner e Builder → todos agents (contexto isolado)
+  - Builder é o único com checkpoints: pré-classifica risco antes de executar (file-based)
 - **Aprovação do Planner é file-based:** editar `.claude/sprints/sprint-YYYY-WW.md` e mudar Status para "Aprovada"
 - **Recuperação**: se uma task for perdida, recriar com `create_scheduled_task` usando os valores acima

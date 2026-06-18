@@ -156,7 +156,7 @@ Backend Railway · Vercel tcgbindex.app · Clerk Production · CI/CD · Históri
 - `@agent-swot` — inteligência competitiva toda segunda (`.claude/agents/agent-swot.md` — contexto isolado)
 - `@agent-produteiro` — priorização ICE toda terça (`.claude/agents/agent-produteiro.md` — contexto isolado)
 - `@agent-planner` — proposta de sprint toda quarta, aprovação file-based (`.claude/agents/agent-planner.md` — contexto isolado)
-- `/agent-builder` — executa sprint aprovado com regras de risco (acionado pelo Planner)
+- `@agent-builder` — executa sprint aprovado com regras de risco (`.claude/agents/agent-builder.md` — contexto isolado)
 - `@agent-tester` — audita cobertura, detecta bugs e gera backlog proativo (`.claude/agents/agent-tester.md` — contexto isolado)
 
 ### ⏳ Backlog e roadmap
