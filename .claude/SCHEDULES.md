@@ -51,5 +51,9 @@ Para atualizar uma task: `update_scheduled_task` com o `taskId` abaixo.
 ## Notas
 
 - **Cron em horário local (BRT)** — o Claude Code interpreta cron em horário local, não UTC
-- **Agent vs Skill**: SWOT roda como agent (contexto isolado); Produteiro e Planner como skills (progresso visível no chat)
+- **Agent vs Skill**:
+  - SWOT, Produteiro e Tester → agents (contexto isolado, autônomos)
+  - Planner → skill (checkpoint humano obrigatório antes do Builder)
+  - Builder → skill (checkpoints de risco alto mid-execução)
+- **`@agent-tester`** pode ser invocado manualmente ou pelo Planner pós-merge. Para modo interativo com aplicação de correções: `/agent-tester`
 - **Recuperação**: se uma task for perdida, recriar com `create_scheduled_task` usando os valores acima
