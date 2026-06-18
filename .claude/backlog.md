@@ -73,6 +73,9 @@
 | Hooks — cost tracking por sessão + beep de conclusão | — | 2026-W26 |
 | Agent SWOT migrado para .claude/agents/ (contexto isolado) | #34 | 2026-W26 |
 | Agent Produteiro migrado para .claude/agents/ (contexto isolado) | #35 | 2026-W26 |
+| Reestruturação: backlog.md, schedules.md, docs/specs/, ship com BACKLOG check | #36 | 2026-W25 |
+| Agent Tester migrado para .claude/agents/ (contexto isolado, escreve BACKLOG) | #37 | 2026-W25 |
+| Agent Planner migrado para .claude/agents/ — aprovação file-based, .claude/sprints/ | #38 | 2026-W25 |
 
 ---
 
