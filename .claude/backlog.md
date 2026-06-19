@@ -1,7 +1,7 @@
 # BACKLOG — TCG Bindex
 
 > Fonte autoritativa de hipóteses e trabalho pendente do produto.
-> Localização: `.claude/BACKLOG.md` — ao lado de `SCHEDULES.md`
+> Localização: `.claude/backlog.md` — ao lado de `schedules.md`
 >
 > **Regras de escrita (quem pode escrever o quê):**
 > - `💡 Hipóteses` → Matheus em sessão, ou gaps novos do SWOT via Produteiro
@@ -76,6 +76,7 @@
 | Reestruturação: backlog.md, schedules.md, docs/specs/, ship com BACKLOG check | #36 | 2026-W25 |
 | Agent Tester migrado para .claude/agents/ (contexto isolado, escreve BACKLOG) | #37 | 2026-W25 |
 | Agent Planner migrado para .claude/agents/ — aprovação file-based, .claude/sprints/ | #38 | 2026-W25 |
+| Agent Builder migrado para .claude/agents/ — pré-classificação de risco, ship inline | #39 | 2026-W25 |
 
 ---
 
