@@ -147,6 +147,48 @@ EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_...
 
 ---
 
+## CLIs de debug
+
+Ferramentas instaladas globalmente para inspecionar logs e estado de produção sem abrir dashboards.
+
+```bash
+# GitHub — CI logs e PRs
+gh run list --branch develop --limit 5
+gh run view <id> --log-failed
+gh pr list
+
+# Railway — logs do backend
+railway link          # vincula ao projeto Railway (uma vez)
+railway logs          # tail dos logs do container
+railway status        # status do deploy atual
+
+# Vercel — logs do frontend
+vercel ls             # listar deployments
+vercel logs <url>     # logs de um deployment específico
+
+# MongoDB — queries diretas no Atlas
+mongosh "MONGODB_URI"                        # conectar (string do Railway env var)
+mongosh "MONGODB_URI" --eval "db.cards.countDocuments()"  # query one-liner
+```
+
+### O que cada CLI cobre
+
+| CLI | Cobre | Não cobre |
+|-----|-------|-----------|
+| `gh` | CI failures, PR status, run logs | - |
+| `railway` | Crashes de runtime, logs do Express, erros não capturados | Métricas de banco |
+| `vercel` | Build failures do frontend, edge logs | Logs de runtime React Native |
+| `mongosh` | Queries, contagens, inspeção de documentos | Slow queries, índices (usar Atlas UI) |
+
+### CLIs não disponíveis no stack atual
+
+- **Clerk** — sem CLI; usar dashboard em clerk.com
+- **Anthropic** — sem CLI; usar dashboard em console.anthropic.com
+- **EAS** (`eas-cli`) — para app store builds (Fase 3); instalar quando necessário: `npm i -g eas-cli`
+- **Atlas CLI** — alternativa ao mongosh para gestão de cluster; instalar via `winget install MongoDB.MongoDBAtlasCLI`
+
+---
+
 ## Estado atual
 
 ### ✅ Em produção
